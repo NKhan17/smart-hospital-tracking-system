@@ -50,9 +50,9 @@ export default function Home() {
   }, []);
 
   const getStatusDisplay = (load: number) => {
-    if (load > 80) return { text: '[CRITICAL SATURATION]', color: 'text-red-600', border: 'border-red-600', bg: 'bg-red-50' };
-    if (load > 50) return { text: '[MODERATE SURGE]', color: 'text-yellow-600', border: 'border-yellow-600', bg: 'bg-yellow-50' };
-    return { text: '[LOW CAPACITY]', color: 'text-green-600', border: 'border-green-600', bg: 'bg-green-50' };
+    if (load > 80) return { text: 'CRITICAL INFRASTRUCTURE SURGE', color: 'text-red-500', border: 'border-red-900', bg: 'bg-[#4a0f0f]/20' };
+    if (load > 50) return { text: 'MODERATE SURGE', color: 'text-yellow-500', border: 'border-yellow-900', bg: 'bg-[#4a3f0f]/20' };
+    return { text: 'LOW LOAD', color: 'text-green-500', border: 'border-green-900', bg: 'bg-[#0f4a2f]/20' };
   };
 
   const handleCategorySwitch = (cat: 'Human' | 'Pet') => {
@@ -82,63 +82,90 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--backdrop)] font-sans text-[var(--title)] selection:bg-gray-200">
+    <div className="flex h-screen overflow-hidden bg-[var(--background)] font-sans text-[var(--title)] selection:bg-[#30363D]">
       
-      {/* Left Sidebar Workspace Pane */}
-      <aside className="w-80 bg-[var(--background)] stitch-border border-y-0 border-l-0 flex flex-col shrink-0 z-10 relative shadow-sm">
-        
-        {/* Header Section */}
-        <div className="p-6 border-b border-[var(--border)]">
-          <h1 className="text-sm font-bold tracking-tight text-[var(--title)] mb-6 leading-snug">
-            Smart Hospital Tracking<br/>and Appointment System
-          </h1>
-          
-          {/* Segmented Tab Matrix */}
-          <div className="flex w-full stitch-border p-1 bg-[var(--backdrop)]">
-            <button
-              onClick={() => handleCategorySwitch('Human')}
-              className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-none ${category === 'Human' ? 'bg-[var(--background)] text-[var(--title)] stitch-border shadow-sm' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
-            >
-              [ Human Care ]
-            </button>
-            <button
-              onClick={() => handleCategorySwitch('Pet')}
-              className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-none ${category === 'Pet' ? 'bg-[var(--background)] text-[var(--title)] stitch-border shadow-sm' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
-            >
-              [ Veterinary Care ]
-            </button>
-          </div>
+      {/* Top Navbar Header */}
+      <header className="absolute top-0 w-full h-14 border-b border-[var(--border)] bg-[var(--background)] flex items-center justify-between px-6 z-30">
+        <div className="flex items-center space-x-3">
+          <div className="h-4 w-4 bg-[var(--title)] rounded-none"></div>
+          <h1 className="text-xs font-bold tracking-widest text-[var(--title)] uppercase">Smart Hospital Tracking and Appointment System</h1>
         </div>
+        <button 
+          onClick={() => window.location.href = '/staff'}
+          className="text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 stitch-border hover:bg-[var(--panel)] transition-none text-[var(--meta)] hover:text-[var(--title)]"
+        >
+          Staff Terminal
+        </button>
+      </header>
 
-        {/* Polymorphic Profile Switcher */}
-        <div className="p-6 border-b border-[var(--border)] overflow-y-auto min-h-[16rem]">
-          <h2 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-4">Active System Profiles</h2>
-          <div className="space-y-3">
+      {/* 4-Panel Grid Layout */}
+      <div className="flex w-full h-full pt-14">
+        
+        {/* PANEL 1: Unified Tracking Controller */}
+        <aside className="w-72 border-r border-[var(--border)] bg-[var(--background)] flex flex-col shrink-0">
+          <div className="p-6 border-b border-[var(--border)]">
+            <h2 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-4">View Controller</h2>
+            {/* Segmented Tab Matrix */}
+            <div className="flex w-full stitch-border p-1 bg-[var(--panel)]">
+              <button
+                onClick={() => handleCategorySwitch('Human')}
+                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest transition-none ${category === 'Human' ? 'bg-[var(--background)] text-[var(--title)] stitch-border' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
+              >
+                [ Human Care ]
+              </button>
+              <button
+                onClick={() => handleCategorySwitch('Pet')}
+                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest transition-none ${category === 'Pet' ? 'bg-[var(--background)] text-[var(--title)] stitch-border' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
+              >
+                [ Veterinary Care ]
+              </button>
+            </div>
+          </div>
+          
+          {/* Square Search Bar */}
+          <div className="p-6 border-b border-[var(--border)]">
+            <label className="block text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Target Zone Lookup</label>
+            <input
+              type="text"
+              placeholder="Search facility..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full stitch-border px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--title)] bg-[var(--panel)] placeholder-[var(--border)] text-[var(--title)]"
+            />
+          </div>
+        </aside>
+
+        {/* PANEL 2: Polymorphic Patient Sub-Profiles Deck */}
+        <aside className="w-80 border-r border-[var(--border)] bg-[var(--background)] flex flex-col shrink-0 overflow-y-auto">
+          <div className="p-6 border-b border-[var(--border)] bg-[var(--panel)]">
+            <h2 className="text-[10px] font-bold text-[var(--title)] uppercase tracking-widest">Active Identity Tokens</h2>
+          </div>
+          <div className="p-6 space-y-4">
             {activeProfiles.map((p: any) => {
               const isSelected = selectedProfileId === p.id;
               return (
                 <div 
                   key={p.id}
                   onClick={() => setSelectedProfileId(p.id)}
-                  className={`p-4 cursor-pointer transition-none relative group ${isSelected ? 'stitch-border border-[var(--title)] bg-[var(--backdrop)]' : 'stitch-border border-[var(--border)] bg-[var(--background)] hover:border-[var(--meta)]'}`}
+                  className={`p-4 cursor-pointer transition-none relative ${isSelected ? 'stitch-border border-[var(--title)] bg-[var(--panel)]' : 'stitch-border border-[var(--border)] bg-[var(--background)] hover:border-[var(--meta)]'}`}
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`text-xs font-bold ${isSelected ? 'text-[var(--title)]' : 'text-[var(--meta)] group-hover:text-[var(--title)]'}`}>{p.name}</span>
-                    {isSelected && <span className="h-2 w-2 rounded-full bg-[var(--title)]"></span>}
+                    <span className={`text-xs font-bold ${isSelected ? 'text-[var(--title)]' : 'text-[var(--meta)]'}`}>{p.name}</span>
+                    {isSelected && <span className="text-[10px] text-[var(--title)] font-mono">[SELECTED]</span>}
                   </div>
                   {category === 'Human' ? (
-                    <div className="flex justify-between text-[10px] text-[var(--meta)] border-t border-[var(--border)] pt-2 mt-2">
+                    <div className="flex justify-between text-[10px] text-[var(--meta)] border-t border-[var(--border)] pt-3 mt-3">
                       <span>Age: <span className="mono font-bold text-[var(--title)]">{p.age}</span></span>
-                      <span>Blood: <span className="mono font-bold text-[var(--title)]">{p.bloodGroup}</span></span>
+                      <span>Blood Group: <span className="mono font-bold text-[var(--title)]">{p.bloodGroup}</span></span>
                     </div>
                   ) : (
-                    <div className="border-t border-[var(--border)] pt-2 mt-2">
-                      <div className="flex justify-between text-[10px] text-[var(--meta)] mb-2">
+                    <div className="border-t border-[var(--border)] pt-3 mt-3">
+                      <div className="flex justify-between text-[10px] text-[var(--meta)] mb-3">
                         <span>Species: <span className="font-bold text-[var(--title)]">{p.species}</span></span>
                         <span>Breed: <span className="font-bold text-[var(--title)]">{p.breed}</span></span>
                       </div>
-                      <div className="inline-block border border-green-600 text-green-700 bg-green-50 text-[9px] font-bold uppercase tracking-widest px-2 py-1">
-                        Vaccination Status Verified
+                      <div className="inline-block border border-green-800 text-green-500 bg-[#0f4a2f]/20 text-[9px] font-bold uppercase tracking-widest px-2 py-1">
+                        [ CRYPTOGRAPHIC VACCINATION CHECK VERIFIED ]
                       </div>
                     </div>
                   )}
@@ -146,132 +173,120 @@ export default function Home() {
               );
             })}
           </div>
-        </div>
+        </aside>
 
-        {/* Immediate Search/Filter Matrix */}
-        <div className="p-6 mt-auto border-t border-[var(--border)] bg-[var(--background)]">
-          <label className="block text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-2">Facility Search Hook</label>
-          <input
-            type="text"
-            placeholder="Search by name or district..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full stitch-border px-3 py-2 text-xs font-mono focus:outline-none focus:border-[var(--title)] focus:ring-1 focus:ring-[var(--title)] bg-[var(--backdrop)] placeholder-[var(--meta)]"
-          />
-        </div>
-      </aside>
-
-      {/* Right Main Stream Viewport Layout */}
-      <main className="flex-1 overflow-y-auto relative bg-[var(--backdrop)]">
-        {/* Top Action Bar */}
-        <div className="sticky top-0 bg-[var(--background)] border-b border-[var(--border)] px-8 py-4 flex justify-between items-center z-10 shadow-sm">
-           <h2 className="text-[11px] font-bold text-[var(--meta)] uppercase tracking-widest">Network Facility Grid &middot; Node BLR-01</h2>
-           <button 
-             onClick={() => window.location.href = '/staff'}
-             className="stitch-border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-white text-[var(--title)] hover:bg-[var(--backdrop)] transition-none"
-           >
-             Terminal Portal Access
-           </button>
-        </div>
-
-        <div className="p-8 max-w-6xl mx-auto space-y-5 pb-24">
-          {filteredFacilities.length === 0 ? (
-            <div className="p-12 stitch-border bg-[var(--background)] text-center">
-              <span className="text-xs font-bold text-[var(--meta)] uppercase tracking-widest">Zero facilities matching filter criteria</span>
+        {/* PANEL 3 & 4 Container */}
+        <main className="flex-1 flex overflow-hidden">
+          
+          {/* PANEL 3: Real-Time Facility Metrics Stream */}
+          <div className="flex-[1.5] border-r border-[var(--border)] bg-[var(--panel)] overflow-y-auto">
+            <div className="p-6 border-b border-[var(--border)] bg-[var(--background)] sticky top-0 z-10">
+              <h2 className="text-[10px] font-bold text-[var(--title)] uppercase tracking-widest">Network Topology Stream</h2>
             </div>
-          ) : (
-            filteredFacilities.map(f => {
-              const status = getStatusDisplay(f.load);
-              return (
-                <div key={f.id} className="stitch-border bg-[var(--background)] p-6 flex items-stretch justify-between hover:border-[var(--meta)] transition-none group shadow-sm">
-                  
-                  {/* Left Column: Name & Address */}
-                  <div className="flex-[1.5] pr-8 border-r border-[var(--border)] flex flex-col justify-center">
-                    <h3 className="text-lg font-bold text-[var(--title)] leading-tight mb-2 group-hover:underline underline-offset-4 decoration-[var(--border)]">{f.name}</h3>
-                    <p className="text-xs text-[var(--meta)] font-medium">{f.address}</p>
-                  </div>
-                  
-                  {/* Middle Column: Live Congestion Threshold Index */}
-                  <div className="flex-1 px-8 border-r border-[var(--border)] flex flex-col justify-center items-start">
-                    <div className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Capacity Threshold State</div>
-                    <div className={`inline-block px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border ${status.border} ${status.color} ${status.bg}`}>
-                      {status.text}
+            <div className="p-6 space-y-4">
+              {filteredFacilities.length === 0 ? (
+                <div className="p-8 stitch-border bg-[var(--background)] text-center text-[10px] text-[var(--meta)] uppercase tracking-widest">
+                  Zero active nodes.
+                </div>
+              ) : (
+                filteredFacilities.map(f => (
+                  <div key={f.id} className="stitch-border bg-[var(--background)] p-0 flex items-stretch hover:border-[var(--meta)] transition-none h-28">
+                    {/* Left: Facility Name and precise municipal location string */}
+                    <div className="flex-[1.5] p-5 border-r border-[var(--border)] flex flex-col justify-center">
+                      <h3 className="text-sm font-bold text-[var(--title)] mb-1 leading-snug">{f.name}</h3>
+                      <p className="text-[10px] text-[var(--meta)] font-mono">{f.address}</p>
+                    </div>
+                    {/* Center: Occupancy percentage metric */}
+                    <div className="flex-1 p-5 border-r border-[var(--border)] flex flex-col justify-center items-end bg-[var(--panel)]">
+                       <div className="text-[10px] text-[var(--meta)] uppercase tracking-widest mb-2">Occupancy Vol.</div>
+                       <div className="text-xl font-bold mono text-[var(--title)] tracking-tight">{f.load}%</div>
+                    </div>
+                    {/* Right: Live wait countdown values */}
+                    <div className="flex-1 p-5 flex flex-col justify-center items-end bg-[var(--panel)]">
+                       <div className="text-[10px] text-[var(--meta)] uppercase tracking-widest mb-2">Queue Estimate</div>
+                       <div className="text-xl font-bold mono text-[var(--title)] tracking-tight">{f.estWait}</div>
                     </div>
                   </div>
-                  
-                  {/* Right Column: Wait Time & Action */}
-                  <div className="flex-1 pl-8 flex flex-col justify-between items-end">
-                    <div className="text-right mb-6">
-                      <div className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-2">Real-Time Queue Wait</div>
-                      <div className="text-xl font-bold mono text-[var(--title)] tracking-tight">Est. {f.estWait}</div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* PANEL 4: Active Congestion Status Thresholds */}
+          <div className="flex-1 bg-[var(--background)] overflow-y-auto">
+            <div className="p-6 border-b border-[var(--border)] bg-[var(--background)] sticky top-0 z-10">
+              <h2 className="text-[10px] font-bold text-[var(--title)] uppercase tracking-widest">Threshold Triggers</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              {filteredFacilities.map(f => {
+                const status = getStatusDisplay(f.load);
+                return (
+                  <div key={f.id} className="stitch-border bg-[var(--panel)] p-5 flex flex-col justify-between h-28">
+                    <div className={`inline-block px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest border ${status.border} ${status.color} ${status.bg} w-max mb-3`}>
+                      {status.text}
                     </div>
                     <button 
                       onClick={() => handleRequestAppt(f)}
-                      className="w-full stitch-border px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-[var(--title)] text-white hover:bg-black transition-none shadow-md"
+                      className="w-full stitch-border px-3 py-2.5 text-[9px] font-bold uppercase tracking-widest bg-[var(--title)] text-[var(--background)] hover:bg-[var(--meta)] transition-none text-center"
                     >
-                      [ Request Token ]
+                      [ Request Appointment Token ]
                     </button>
                   </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </main>
+                );
+              })}
+            </div>
+          </div>
+
+        </main>
+      </div>
 
       {/* Appointment Confirmation Modal */}
       {showModal && selectedFacilityForAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#24292F]/60 backdrop-blur-sm">
-          <div className="bg-[var(--background)] stitch-border w-full max-w-lg shadow-2xl relative">
-            
-            <div className="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--backdrop)]">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--title)]">Initialization Handshake</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1117]/90 backdrop-blur-sm">
+          <div className="bg-[var(--panel)] stitch-border w-full max-w-lg shadow-2xl relative">
+            <div className="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--title)]">Cryptographic Sequence</h3>
               {apptStatus === 'pending' && (
-                <button onClick={() => setShowModal(false)} className="text-[var(--meta)] hover:text-[var(--title)] p-1 border border-transparent hover:border-[var(--border)]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button onClick={() => setShowModal(false)} className="text-[var(--meta)] hover:text-[var(--title)] font-mono">
+                  [X]
                 </button>
               )}
             </div>
-
             {apptStatus === 'pending' ? (
               <div className="p-8">
-                <p className="text-xs font-medium text-[var(--meta)] leading-relaxed mb-8">
-                  You are generating a secure cryptographic token request for <strong className="text-[var(--title)] underline decoration-[var(--border)] underline-offset-2">{selectedFacilityForAppt.name}</strong>. This token block will reserve your identity position in the node schema prior to physical arrival.
+                <p className="text-[11px] font-mono text-[var(--meta)] leading-relaxed mb-8">
+                  Initiating secure token block for <strong className="text-[var(--title)]">{selectedFacilityForAppt.name}</strong>. This payload binds your selected profile identity to the live node array.
                 </p>
-                
-                <div className="stitch-border p-4 bg-[var(--backdrop)] mb-8 flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)]">Selected Binding Profile</span>
+                <div className="stitch-border p-4 bg-[var(--background)] mb-8 flex justify-between items-center">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)]">Bound Identity</span>
                   <span className="text-xs font-bold text-[var(--title)] mono">
                     {category === 'Human' ? mockProfiles.human.find(p=>p.id===selectedProfileId)?.name : mockProfiles.pet.find(p=>p.id===selectedProfileId)?.name}
                   </span>
                 </div>
-
                 <div className="flex space-x-4">
                   <button 
                     onClick={() => setShowModal(false)}
-                    className="flex-1 stitch-border py-3 text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] bg-[var(--background)] hover:bg-[var(--backdrop)] hover:text-[var(--title)] transition-none"
+                    className="flex-1 stitch-border py-3 text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] hover:text-[var(--title)] transition-none bg-[var(--background)]"
                   >
-                    Abort Payload
+                    Abort
                   </button>
                   <button 
                     onClick={confirmRequest}
-                    className="flex-[2] stitch-border py-3 text-[10px] font-bold uppercase tracking-widest bg-[var(--title)] text-white hover:bg-black transition-none shadow-sm"
+                    className="flex-[2] stitch-border py-3 text-[10px] font-bold uppercase tracking-widest bg-[var(--title)] text-[var(--background)] hover:bg-[var(--meta)] transition-none"
                   >
-                    Confirm & Execute Request
+                    Confirm Payload
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="p-10 flex flex-col items-center">
-                <div className="h-12 w-12 bg-green-100 border border-green-600 flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h3 className="text-sm font-bold text-[var(--title)] mb-2">Token Request Initialized</h3>
-                <p className="text-xs font-medium text-[var(--meta)] text-center max-w-xs mb-8">
-                  Present this binding context to the front desk terminal upon arrival.
+              <div className="p-10 flex flex-col items-center bg-[var(--background)]">
+                <div className="text-green-500 text-2xl mb-4 font-mono">[ OK ]</div>
+                <h3 className="text-sm font-bold text-[var(--title)] mb-2 uppercase tracking-widest">Token Sequence Active</h3>
+                <p className="text-[11px] font-mono text-[var(--meta)] text-center mb-8">
+                  Provide credentials at terminal.
                 </p>
-                <div className="w-full h-1 bg-[var(--backdrop)]">
-                  <div className="h-full bg-green-600 animate-[progress_3s_linear_forwards]"></div>
+                <div className="w-full h-px bg-[var(--border)] overflow-hidden">
+                  <div className="h-full bg-green-500 animate-[progress_3s_linear_forwards]"></div>
                 </div>
               </div>
             )}
