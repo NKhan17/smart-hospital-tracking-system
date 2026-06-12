@@ -29,7 +29,10 @@ export default function Home() {
           <h1 className="text-sm font-semibold tracking-wide uppercase text-gray-900">HealthTrack</h1>
         </div>
         <div className="flex space-x-3">
-          <button className="text-xs font-medium px-4 py-2 stitch-border hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => window.location.href = '/staff'}
+            className="text-xs font-medium px-4 py-2 stitch-border hover:bg-gray-50 transition-colors"
+          >
             Staff Portal
           </button>
           <button className="text-xs font-medium px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors">

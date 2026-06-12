@@ -7,12 +7,15 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const profileRoutes = require('./routes/profiles');
+const appointmentRoutes = require('./routes/appointments');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] }
 });
+
+app.set('io', io); // Make io accessible in routes
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -38,6 +41,24 @@ async function initializeDatabase() {
 }
 
 app.use('/api/profiles', profileRoutes);
+app.use('/api/appointments', appointmentRoutes);
+
+// Housekeeping loop for expired tokens
+setInterval(async () => {
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000);
+  try {
+    const Appointment = require('./models/Appointment');
+    const result = await Appointment.updateMany(
+      { status: 'Pending Verification', createdAt: { $lt: cutoff } },
+      { $set: { status: 'Expired' } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`Housekeeping: Expired ${result.modifiedCount} pending appointments.`);
+    }
+  } catch (err) {
+    console.error('Housekeeping error:', err);
+  }
+}, 60000);
 
 io.on('connection', (socket) => {
   console.log('New client connected', socket.id);
