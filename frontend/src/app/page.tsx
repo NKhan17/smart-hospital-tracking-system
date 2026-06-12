@@ -2,304 +2,280 @@
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const initialFacilities = [
-  { id: '1', name: 'Atria Health Hub', address: '124 Main Street, Bengaluru', type: 'Human', load: 30, estWait: '12 Mins' },
-  { id: '2', name: 'Northside Medical Center', address: '88 Tech Park Road, Bengaluru', type: 'Human', load: 95, estWait: '90 Mins' },
-  { id: '3', name: 'South End Emergency', address: '45 Ring Road, Bengaluru', type: 'Human', load: 60, estWait: '35 Mins' },
-  { id: '4', name: 'Bengaluru Vet Clinic', address: '99 Pet Avenue, Bengaluru', type: 'Pet', load: 85, estWait: '45 Mins' },
-  { id: '5', name: 'Apollo Animal Health', address: '12 Park Square, Bengaluru', type: 'Pet', load: 10, estWait: '5 Mins' },
+const facilitiesData = [
+  { id: '1', name: 'Hebbal Veterinary Hospital', type: 'Pet', load: 20, estWait: '5 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '35%', left: '30%' } },
+  { id: '2', name: 'KC General Hospital', type: 'Human', load: 100, estWait: '45 Mins', status: 'Full', color: 'bg-red-400', pos: { top: '25%', left: '55%' } },
+  { id: '3', name: 'Central Med', type: 'Human', load: 60, estWait: '20 Mins', status: 'Moderate', color: 'bg-yellow-500', pos: { top: '60%', left: '65%' } },
+  { id: '4', name: 'Paws & Care', type: 'Pet', load: 15, estWait: '2 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '75%', left: '25%' } },
 ];
 
-const mockProfiles = {
-  human: [
-    { id: 'h1', name: 'John Doe', age: 34, bloodGroup: 'O+' },
-    { id: 'h2', name: 'Jane Doe', age: 31, bloodGroup: 'A-' }
-  ],
-  pet: [
-    { id: 'p1', name: 'Max', species: 'Dog', breed: 'Golden Retriever', vaccinations: 'Verified' },
-    { id: 'p2', name: 'Luna', species: 'Cat', breed: 'Siamese', vaccinations: 'Verified' }
-  ]
-};
-
 export default function Home() {
-  const [facilities, setFacilities] = useState(initialFacilities);
-  const [category, setCategory] = useState<'Human' | 'Pet'>('Human');
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>('h1');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'Map' | 'Profiles' | 'Tickets'>('Map');
+  const [mapCategory, setMapCategory] = useState<'Human Hospitals' | 'Veterinary Clinics'>('Human Hospitals');
   
-  const [showModal, setShowModal] = useState(false);
-  const [selectedFacilityForAppt, setSelectedFacilityForAppt] = useState<any>(null);
-  const [apptStatus, setApptStatus] = useState<'pending' | 'confirmed'>('pending');
+  // Modal State
+  const [selectedFacility, setSelectedFacility] = useState<any>(null);
+  const [selectedProfile, setSelectedProfile] = useState<string | null>('Bruno (Pet)');
+  
+  // Real-time
+  const [facilities, setFacilities] = useState(facilitiesData);
 
   useEffect(() => {
     const socket = io('http://localhost:5000');
-    socket.on('load-updated', (data) => {
-      setFacilities(prev => prev.map(f => {
-        if (f.id === data.facilityId || data.facilityId) {
-          const targetId = ['1','2','3','4','5'][Math.floor(Math.random() * 5)];
-          if (f.id === targetId) {
-            return { ...f, load: Math.min(f.load + 5, 100) };
-          }
-        }
-        return f;
-      }));
+    socket.on('load-updated', () => {
+       // Mock update
+       setFacilities([...facilities]);
     });
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+    return () => { socket.disconnect(); };
+  }, [facilities]);
 
-  const getStatusDisplay = (load: number) => {
-    if (load > 80) return { text: 'CRITICAL INFRASTRUCTURE SURGE', color: 'text-red-500', border: 'border-red-900', bg: 'bg-[#4a0f0f]/20' };
-    if (load > 50) return { text: 'MODERATE SURGE', color: 'text-yellow-500', border: 'border-yellow-900', bg: 'bg-[#4a3f0f]/20' };
-    return { text: 'LOW LOAD', color: 'text-green-500', border: 'border-green-900', bg: 'bg-[#0f4a2f]/20' };
-  };
-
-  const handleCategorySwitch = (cat: 'Human' | 'Pet') => {
-    setCategory(cat);
-    setSelectedProfileId(cat === 'Human' ? mockProfiles.human[0].id : mockProfiles.pet[0].id);
-    setSearchQuery('');
-  };
-
-  const filteredFacilities = facilities.filter(f => 
-    f.type === category && 
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const renderTopNav = (title: string) => (
+    <div className="flex justify-between items-center p-4 z-20 relative">
+      <div className="flex items-center space-x-4">
+        <svg className="w-5 h-5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <div className="w-6 h-6 rounded-full bg-[var(--border)] flex items-center justify-center">
+          <svg className="w-4 h-4 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        </div>
+        <span className="text-sm font-medium text-[var(--meta)]">{title}</span>
+      </div>
+      <div className="flex items-center space-x-4 text-[var(--meta)]">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg>
+      </div>
+    </div>
   );
 
-  const activeProfiles = category === 'Human' ? mockProfiles.human : mockProfiles.pet;
-
-  const handleRequestAppt = (f: any) => {
-    setSelectedFacilityForAppt(f);
-    setApptStatus('pending');
-    setShowModal(true);
-  };
-
-  const confirmRequest = () => {
-    setApptStatus('confirmed');
-    setTimeout(() => {
-      setShowModal(false);
-    }, 3000);
-  };
+  const renderBottomNav = () => (
+    <div className="absolute bottom-0 w-full h-20 bg-[var(--background)] border-t border-[var(--border)] flex justify-center items-center space-x-16 z-30 px-6">
+      <button onClick={() => setActiveTab('Map')} className={`flex flex-col items-center justify-center w-20 h-12 rounded-full ${activeTab === 'Map' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'text-[var(--meta)]'}`}>
+        <svg className="w-5 h-5 mb-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clipRule="evenodd"></path></svg>
+        <span className="text-[10px] font-medium">Map</span>
+      </button>
+      <button onClick={() => setActiveTab('Profiles')} className={`flex flex-col items-center justify-center w-20 h-12 rounded-full ${activeTab === 'Profiles' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'text-[var(--meta)]'}`}>
+        <svg className="w-5 h-5 mb-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
+        <span className="text-[10px] font-medium">Profiles</span>
+      </button>
+      <button onClick={() => setActiveTab('Tickets')} className={`flex flex-col items-center justify-center w-20 h-12 rounded-full ${activeTab === 'Tickets' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)]'}`}>
+        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+        <span className="text-[10px] font-bold">Tickets</span>
+      </button>
+    </div>
+  );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--background)] font-sans text-[var(--title)] selection:bg-[#30363D]">
+    <div className="relative w-full h-screen bg-[var(--background)] overflow-hidden font-sans border-4 border-indigo-500/20 rounded-xl m-auto my-2 shadow-2xl max-w-6xl">
       
-      {/* Top Navbar Header */}
-      <header className="absolute top-0 w-full h-14 border-b border-[var(--border)] bg-[var(--background)] flex items-center justify-between px-6 z-30">
-        <div className="flex items-center space-x-3">
-          <div className="h-4 w-4 bg-[var(--title)] rounded-none"></div>
-          <h1 className="text-xs font-bold tracking-widest text-[var(--title)] uppercase">Smart Hospital Tracking and Appointment System</h1>
-        </div>
-        <button 
-          onClick={() => window.location.href = '/staff'}
-          className="text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 stitch-border hover:bg-[var(--panel)] transition-none text-[var(--meta)] hover:text-[var(--title)]"
-        >
-          Staff Terminal
-        </button>
-      </header>
+      {/* ---------------- MAP VIEW ---------------- */}
+      {activeTab === 'Map' && (
+        <div className="absolute inset-0 map-bg">
+          {renderTopNav('Live Heatmap Dashboard')}
 
-      {/* 4-Panel Grid Layout */}
-      <div className="flex w-full h-full pt-14">
-        
-        {/* PANEL 1: Unified Tracking Controller */}
-        <aside className="w-72 border-r border-[var(--border)] bg-[var(--background)] flex flex-col shrink-0">
-          <div className="p-6 border-b border-[var(--border)]">
-            <h2 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-4">View Controller</h2>
-            {/* Segmented Tab Matrix */}
-            <div className="flex w-full stitch-border p-1 bg-[var(--panel)]">
-              <button
-                onClick={() => handleCategorySwitch('Human')}
-                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest transition-none ${category === 'Human' ? 'bg-[var(--background)] text-[var(--title)] stitch-border' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
-              >
-                [ Human Care ]
-              </button>
-              <button
-                onClick={() => handleCategorySwitch('Pet')}
-                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest transition-none ${category === 'Pet' ? 'bg-[var(--background)] text-[var(--title)] stitch-border' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
-              >
-                [ Veterinary Care ]
-              </button>
+          {/* Center Pill Switcher */}
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex bg-[var(--panel)] border border-[var(--border)] rounded-full p-1 z-20 shadow-lg">
+            <button 
+              onClick={() => setMapCategory('Human Hospitals')}
+              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'Human Hospitals' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
+            >
+              Human Hospitals
+            </button>
+            <button 
+              onClick={() => setMapCategory('Veterinary Clinics')}
+              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'Veterinary Clinics' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
+            >
+              Veterinary Clinics
+            </button>
+          </div>
+
+          {/* Left Floating Cards */}
+          <div className="absolute left-6 top-24 space-y-4 z-20 w-64">
+            <div className="glass-panel p-4">
+              <h3 className="text-sm font-bold text-white mb-4">Live Queue Status</h3>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-xs text-[var(--meta)]">Current Crowd Level</span>
+                <span className="text-sm font-bold text-green-400">64%</span>
+              </div>
+              <div className="w-full h-1 bg-[var(--border)] rounded-full mb-3">
+                <div className="h-full bg-green-400 rounded-full" style={{width: '64%'}}></div>
+              </div>
+              <div className="text-[10px] text-[var(--meta)] flex items-center">
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Updated 2m ago
+              </div>
             </div>
-          </div>
-          
-          {/* Square Search Bar */}
-          <div className="p-6 border-b border-[var(--border)]">
-            <label className="block text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Target Zone Lookup</label>
-            <input
-              type="text"
-              placeholder="Search facility..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full stitch-border px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--title)] bg-[var(--panel)] placeholder-[var(--border)] text-[var(--title)]"
-            />
-          </div>
-        </aside>
-
-        {/* PANEL 2: Polymorphic Patient Sub-Profiles Deck */}
-        <aside className="w-80 border-r border-[var(--border)] bg-[var(--background)] flex flex-col shrink-0 overflow-y-auto">
-          <div className="p-6 border-b border-[var(--border)] bg-[var(--panel)]">
-            <h2 className="text-[10px] font-bold text-[var(--title)] uppercase tracking-widest">Active Identity Tokens</h2>
-          </div>
-          <div className="p-6 space-y-4">
-            {activeProfiles.map((p: any) => {
-              const isSelected = selectedProfileId === p.id;
-              return (
-                <div 
-                  key={p.id}
-                  onClick={() => setSelectedProfileId(p.id)}
-                  className={`p-4 cursor-pointer transition-none relative ${isSelected ? 'stitch-border border-[var(--title)] bg-[var(--panel)]' : 'stitch-border border-[var(--border)] bg-[var(--background)] hover:border-[var(--meta)]'}`}
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className={`text-xs font-bold ${isSelected ? 'text-[var(--title)]' : 'text-[var(--meta)]'}`}>{p.name}</span>
-                    {isSelected && <span className="text-[10px] text-[var(--title)] font-mono">[SELECTED]</span>}
-                  </div>
-                  {category === 'Human' ? (
-                    <div className="flex justify-between text-[10px] text-[var(--meta)] border-t border-[var(--border)] pt-3 mt-3">
-                      <span>Age: <span className="mono font-bold text-[var(--title)]">{p.age}</span></span>
-                      <span>Blood Group: <span className="mono font-bold text-[var(--title)]">{p.bloodGroup}</span></span>
-                    </div>
-                  ) : (
-                    <div className="border-t border-[var(--border)] pt-3 mt-3">
-                      <div className="flex justify-between text-[10px] text-[var(--meta)] mb-3">
-                        <span>Species: <span className="font-bold text-[var(--title)]">{p.species}</span></span>
-                        <span>Breed: <span className="font-bold text-[var(--title)]">{p.breed}</span></span>
-                      </div>
-                      <div className="inline-block border border-green-800 text-green-500 bg-[#0f4a2f]/20 text-[9px] font-bold uppercase tracking-widest px-2 py-1">
-                        [ CRYPTOGRAPHIC VACCINATION CHECK VERIFIED ]
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
-        {/* PANEL 3 & 4 Container */}
-        <main className="flex-1 flex overflow-hidden">
-          
-          {/* PANEL 3: Real-Time Facility Metrics Stream */}
-          <div className="flex-[1.5] border-r border-[var(--border)] bg-[var(--panel)] overflow-y-auto">
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--background)] sticky top-0 z-10">
-              <h2 className="text-[10px] font-bold text-[var(--title)] uppercase tracking-widest">Network Topology Stream</h2>
-            </div>
-            <div className="p-6 space-y-4">
-              {filteredFacilities.length === 0 ? (
-                <div className="p-8 stitch-border bg-[var(--background)] text-center text-[10px] text-[var(--meta)] uppercase tracking-widest">
-                  Zero active nodes.
-                </div>
-              ) : (
-                filteredFacilities.map(f => (
-                  <div key={f.id} className="stitch-border bg-[var(--background)] p-0 flex items-stretch hover:border-[var(--meta)] transition-none h-28">
-                    {/* Left: Facility Name and precise municipal location string */}
-                    <div className="flex-[1.5] p-5 border-r border-[var(--border)] flex flex-col justify-center">
-                      <h3 className="text-sm font-bold text-[var(--title)] mb-1 leading-snug">{f.name}</h3>
-                      <p className="text-[10px] text-[var(--meta)] font-mono">{f.address}</p>
-                    </div>
-                    {/* Center: Occupancy percentage metric */}
-                    <div className="flex-1 p-5 border-r border-[var(--border)] flex flex-col justify-center items-end bg-[var(--panel)]">
-                       <div className="text-[10px] text-[var(--meta)] uppercase tracking-widest mb-2">Occupancy Vol.</div>
-                       <div className="text-xl font-bold mono text-[var(--title)] tracking-tight">{f.load}%</div>
-                    </div>
-                    {/* Right: Live wait countdown values */}
-                    <div className="flex-1 p-5 flex flex-col justify-center items-end bg-[var(--panel)]">
-                       <div className="text-[10px] text-[var(--meta)] uppercase tracking-widest mb-2">Queue Estimate</div>
-                       <div className="text-xl font-bold mono text-[var(--title)] tracking-tight">{f.estWait}</div>
-                    </div>
-                  </div>
-                ))
-              )}
+            
+            <div className="glass-panel p-4">
+              <h3 className="text-sm font-bold text-white mb-3">Live Queue Status</h3>
+              <div className="relative">
+                <svg className="w-4 h-4 absolute left-3 top-2.5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" placeholder="Search for Hospitals or Ve..." className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2 pl-9 pr-3 text-xs text-white placeholder-[var(--meta)] focus:outline-none focus:border-[var(--accent)]" />
+              </div>
             </div>
           </div>
 
-          {/* PANEL 4: Active Congestion Status Thresholds */}
-          <div className="flex-1 bg-[var(--background)] overflow-y-auto">
-            <div className="p-6 border-b border-[var(--border)] bg-[var(--background)] sticky top-0 z-10">
-              <h2 className="text-[10px] font-bold text-[var(--title)] uppercase tracking-widest">Threshold Triggers</h2>
-            </div>
-            <div className="p-6 space-y-4">
-              {filteredFacilities.map(f => {
-                const status = getStatusDisplay(f.load);
-                return (
-                  <div key={f.id} className="stitch-border bg-[var(--panel)] p-5 flex flex-col justify-between h-28">
-                    <div className={`inline-block px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest border ${status.border} ${status.color} ${status.bg} w-max mb-3`}>
-                      {status.text}
-                    </div>
-                    <button 
-                      onClick={() => handleRequestAppt(f)}
-                      className="w-full stitch-border px-3 py-2.5 text-[9px] font-bold uppercase tracking-widest bg-[var(--title)] text-[var(--background)] hover:bg-[var(--meta)] transition-none text-center"
-                    >
-                      [ Request Appointment Token ]
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Floating Action Buttons (Right) */}
+          <div className="absolute right-6 bottom-28 space-y-3 z-20 flex flex-col">
+             <button className="w-10 h-10 bg-[var(--accent)] rounded-2xl flex items-center justify-center text-[#1E1E1E] shadow-lg">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+             </button>
+             <button className="w-10 h-10 bg-[var(--panel)] border border-[var(--border)] rounded-2xl flex items-center justify-center text-white shadow-lg">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+             </button>
           </div>
 
-        </main>
-      </div>
+          {/* Map Nodes (Filtered by Category) */}
+          {facilities.filter(f => mapCategory.includes(f.type)).map(f => (
+            <div key={f.id} className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style={{ top: f.pos.top, left: f.pos.left }} onClick={() => setSelectedFacility(f)}>
+              <div className="flex items-center space-x-2 bg-[var(--panel)] border border-[var(--border)] rounded-full px-3 py-1.5 shadow-lg group-hover:border-[var(--accent)] transition-colors">
+                <div className={`w-2.5 h-2.5 rounded-full ${f.color}`}></div>
+                <span className="text-[10px] font-medium text-white">{f.name}: {f.status}</span>
+              </div>
+              <div className="absolute left-1/2 bottom-[-8px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[var(--panel)] transform -translate-x-1/2 group-hover:border-t-[var(--accent)] transition-colors"></div>
+            </div>
+          ))}
 
-      {/* Appointment Confirmation Modal */}
-      {showModal && selectedFacilityForAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1117]/90 backdrop-blur-sm">
-          <div className="bg-[var(--panel)] stitch-border w-full max-w-lg shadow-2xl relative">
-            <div className="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--title)]">Cryptographic Sequence</h3>
-              {apptStatus === 'pending' && (
-                <button onClick={() => setShowModal(false)} className="text-[var(--meta)] hover:text-[var(--title)] font-mono">
-                  [X]
+          {/* Booking Modal Overlay */}
+          {selectedFacility && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-40 flex flex-col justify-end pb-24 items-center animate-fade-in">
+              <div className="w-full max-w-md glass-panel p-6 shadow-2xl relative overflow-hidden">
+                <button onClick={() => setSelectedFacility(null)} className="absolute top-4 right-4 text-[var(--meta)] hover:text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
-              )}
+                
+                <div className="mb-6 pr-8">
+                  <div className="flex justify-between items-start mb-1">
+                    <h2 className="text-lg font-bold text-white leading-tight">{selectedFacility.name}</h2>
+                    <span className="flex items-center text-[10px] font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse"></span> LIVE
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-[var(--meta)]">
+                    <p>General OPD & Veterinary Consultation &bull; {selectedFacility.estWait} Wait Time</p>
+                    <p className="font-bold text-[var(--accent)] whitespace-nowrap ml-2">Est. Wait: {selectedFacility.estWait}</p>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Select Patient Profile</h3>
+                  <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+                    {/* Mock Profiles */}
+                    {['Self (Human)', 'Mother (Human)', 'Bruno (Pet)'].map(prof => (
+                      <div 
+                        key={prof}
+                        onClick={() => setSelectedProfile(prof)}
+                        className={`flex-shrink-0 w-24 h-28 rounded-xl border flex flex-col items-center justify-center p-2 cursor-pointer transition-colors ${
+                          selectedProfile === prof ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--border)] bg-[#0D1117] hover:border-[var(--meta)]'
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[var(--panel)] mb-3 flex items-center justify-center overflow-hidden border border-[var(--border)]">
+                           <svg className="w-6 h-6 text-[var(--meta)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">
+                          {prof.split(' ')[0]}<br/>
+                          <span className="text-[9px] text-[var(--meta)]">{prof.split(' ')[1]}</span>
+                        </span>
+                      </div>
+                    ))}
+                    {/* New Profile */}
+                    <div className="flex-shrink-0 w-24 h-28 rounded-xl border border-dashed border-[var(--border)] bg-transparent flex flex-col items-center justify-center p-2 cursor-pointer hover:border-[var(--meta)]">
+                      <div className="w-8 h-8 rounded-full bg-[var(--panel)] mb-3 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                      </div>
+                      <span className="text-[10px] text-[var(--meta)]">New Profile</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setActiveTab('Tickets');
+                    setSelectedFacility(null);
+                  }}
+                  className="w-full py-3.5 bg-[var(--accent)] text-[#1E1E1E] font-bold text-sm rounded-xl flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity mb-3"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                  Scan QR
+                </button>
+                <p className="text-center text-[10px] text-[var(--meta)]">Your position in queue will be locked for 15:00 minutes</p>
+              </div>
             </div>
-            {apptStatus === 'pending' ? (
-              <div className="p-8">
-                <p className="text-[11px] font-mono text-[var(--meta)] leading-relaxed mb-8">
-                  Initiating secure token block for <strong className="text-[var(--title)]">{selectedFacilityForAppt.name}</strong>. This payload binds your selected profile identity to the live node array.
-                </p>
-                <div className="stitch-border p-4 bg-[var(--background)] mb-8 flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)]">Bound Identity</span>
-                  <span className="text-xs font-bold text-[var(--title)] mono">
-                    {category === 'Human' ? mockProfiles.human.find(p=>p.id===selectedProfileId)?.name : mockProfiles.pet.find(p=>p.id===selectedProfileId)?.name}
-                  </span>
+          )}
+        </div>
+      )}
+
+      {/* ---------------- TICKETS VIEW ---------------- */}
+      {activeTab === 'Tickets' && (
+        <div className="absolute inset-0 bg-[#05070B] flex flex-col z-10 overflow-y-auto pb-24">
+          {renderTopNav('Active Scanning Pass')}
+          
+          <div className="flex-1 flex flex-col items-center p-6 max-w-sm mx-auto w-full">
+            <div className="inline-flex items-center space-x-1.5 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Active Check-in</span>
+            </div>
+
+            {/* QR Card */}
+            <div className="glass-panel w-full p-6 mb-6">
+              <div className="bg-[#0D1117] rounded-xl aspect-square w-full mb-6 flex flex-col items-center justify-center border border-[var(--border)] border-dashed relative">
+                 {/* QR Corner Markers */}
+                 <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[var(--meta)] rounded-tl"></div>
+                 <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[var(--meta)] rounded-tr"></div>
+                 <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[var(--meta)] rounded-bl"></div>
+                 <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[var(--meta)] rounded-br"></div>
+                 
+                 <svg className="w-8 h-8 text-[var(--meta)] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                 <span className="text-xs font-medium text-[var(--meta)] tracking-widest uppercase">Align QR Code</span>
+              </div>
+              
+              <div className="text-center text-[8px] text-[var(--meta)] uppercase tracking-widest mb-6">
+                [ ENCRYPTED VIA AES-256 | VALID FOR 15 MINS ]
+              </div>
+
+              <div className="flex justify-between items-start mb-6 border-b border-[var(--border)] pb-4">
+                <div>
+                  <div className="text-[10px] text-[var(--meta)] mb-1">Patient Name</div>
+                  <div className="text-sm font-bold text-white">Bruno (Pet)</div>
                 </div>
-                <div className="flex space-x-4">
-                  <button 
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 stitch-border py-3 text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] hover:text-[var(--title)] transition-none bg-[var(--background)]"
-                  >
-                    Abort
-                  </button>
-                  <button 
-                    onClick={confirmRequest}
-                    className="flex-[2] stitch-border py-3 text-[10px] font-bold uppercase tracking-widest bg-[var(--title)] text-[var(--background)] hover:bg-[var(--meta)] transition-none"
-                  >
-                    Confirm Payload
-                  </button>
+                <div className="text-right">
+                  <div className="text-[10px] text-[var(--meta)] mb-1">Check-In Window</div>
+                  <div className="text-sm font-bold text-white">14:30 - 14:45</div>
                 </div>
               </div>
-            ) : (
-              <div className="p-10 flex flex-col items-center bg-[var(--background)]">
-                <div className="text-green-500 text-2xl mb-4 font-mono">[ OK ]</div>
-                <h3 className="text-sm font-bold text-[var(--title)] mb-2 uppercase tracking-widest">Token Sequence Active</h3>
-                <p className="text-[11px] font-mono text-[var(--meta)] text-center mb-8">
-                  Provide credentials at terminal.
-                </p>
-                <div className="w-full h-px bg-[var(--border)] overflow-hidden">
-                  <div className="h-full bg-green-500 animate-[progress_3s_linear_forwards]"></div>
+
+              <div>
+                <div className="text-[10px] text-[var(--meta)] mb-1">Facility</div>
+                <div className="text-sm font-medium text-white flex items-center">
+                  <svg className="w-4 h-4 mr-1.5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                  Cessna Lifeline Vet Hospital
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Queue Position */}
+            <div className="glass-panel w-full p-6 text-center mb-6">
+              <div className="text-[10px] text-[var(--meta)] mb-2 font-medium">Estimated Wait: 12 min</div>
+              <div className="text-[10px] font-bold text-[var(--accent)] uppercase tracking-widest mb-1">Your Position</div>
+              <div className="text-5xl font-bold text-white mb-4 mono">#3</div>
+              <div className="w-full h-1.5 bg-[#0D1117] rounded-full overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full w-2/3"></div>
+              </div>
+            </div>
+
+            <button className="w-full py-3.5 bg-transparent border border-red-500/30 text-red-400 font-medium text-xs rounded-xl flex items-center justify-center hover:bg-red-500/10 transition-colors">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Cancel Appointment
+            </button>
           </div>
         </div>
       )}
 
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes progress {
-          from { width: 0%; }
-          to { width: 100%; }
-        }
-      `}} />
+      {/* Profiles View Placeholder */}
+      {activeTab === 'Profiles' && (
+        <div className="absolute inset-0 bg-[#05070B] flex items-center justify-center z-10 text-[var(--meta)]">
+          Profile Management View (Select Map or Tickets)
+        </div>
+      )}
+
+      {renderBottomNav()}
     </div>
   );
 }

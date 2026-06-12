@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0D1117;
+  --background: #05070B;
   --panel: #161B22;
   --border: #30363D;
   --text-title: #F0F6FC;
   --text-meta: #8B949E;
+  --accent: #93C5FD;
 }
 
 @theme inline {
@@ -14,6 +15,7 @@
   --color-border: var(--border);
   --color-title: var(--text-title);
   --color-meta: var(--text-meta);
+  --color-accent: var(--accent);
 }
 
 body {
@@ -25,21 +27,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.mono {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+.map-bg {
+  background-color: #05070B;
+  background-image: 
+    radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 60%),
+    linear-gradient(rgba(48, 54, 61, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(48, 54, 61, 0.4) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0D1117;
-    --panel: #161B22;
-    --border: #30363D;
-    --text-title: #F0F6FC;
-    --text-meta: #8B949E;
-  }
-}
-
-.stitch-border {
+.glass-panel {
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 12px;
+}
+
+/* Hide scrollbar for clean UI */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
 }
