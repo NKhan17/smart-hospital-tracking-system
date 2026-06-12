@@ -3,23 +3,33 @@ import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
 const initialFacilities = [
-  { id: '1', name: 'Central City Hospital', type: 'Human', load: 30, estWait: '14 Mins', pos: { top: '35%', left: '40%' } },
-  { id: '2', name: 'Bengaluru Vet Clinic', type: 'Pet', load: 85, estWait: '45 Mins', pos: { top: '55%', left: '60%' } },
-  { id: '3', name: 'Northside Medical', type: 'Human', load: 95, estWait: '90 Mins', pos: { top: '20%', left: '70%' } },
-  { id: '4', name: 'Apollo Animal Health', type: 'Pet', load: 10, estWait: '5 Mins', pos: { top: '75%', left: '30%' } },
-  { id: '5', name: 'South End Emergency', type: 'Human', load: 60, estWait: '35 Mins', pos: { top: '80%', left: '55%' } },
+  { id: '1', name: 'Atria Health Hub', address: '124 Main Street, Bengaluru', type: 'Human', load: 30, estWait: '12 Mins' },
+  { id: '2', name: 'Northside Medical Center', address: '88 Tech Park Road, Bengaluru', type: 'Human', load: 95, estWait: '90 Mins' },
+  { id: '3', name: 'South End Emergency', address: '45 Ring Road, Bengaluru', type: 'Human', load: 60, estWait: '35 Mins' },
+  { id: '4', name: 'Bengaluru Vet Clinic', address: '99 Pet Avenue, Bengaluru', type: 'Pet', load: 85, estWait: '45 Mins' },
+  { id: '5', name: 'Apollo Animal Health', address: '12 Park Square, Bengaluru', type: 'Pet', load: 10, estWait: '5 Mins' },
 ];
 
 const mockProfiles = {
-  human: { name: 'John Doe', age: 34, bloodGroup: 'O+', allergies: 'Penicillin', conditions: 'None' },
-  pet: { name: 'Max', species: 'Dog', breed: 'Golden Retriever', vaccinations: 'Up to Date' }
+  human: [
+    { id: 'h1', name: 'John Doe', age: 34, bloodGroup: 'O+' },
+    { id: 'h2', name: 'Jane Doe', age: 31, bloodGroup: 'A-' }
+  ],
+  pet: [
+    { id: 'p1', name: 'Max', species: 'Dog', breed: 'Golden Retriever', vaccinations: 'Verified' },
+    { id: 'p2', name: 'Luna', species: 'Cat', breed: 'Siamese', vaccinations: 'Verified' }
+  ]
 };
 
 export default function Home() {
   const [facilities, setFacilities] = useState(initialFacilities);
-  const [selectedFacility, setSelectedFacility] = useState<any>(null);
-  const [profileType, setProfileType] = useState('Human Profiles');
-  const [showDrawer, setShowDrawer] = useState(false);
+  const [category, setCategory] = useState<'Human' | 'Pet'>('Human');
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>('h1');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [showModal, setShowModal] = useState(false);
+  const [selectedFacilityForAppt, setSelectedFacilityForAppt] = useState<any>(null);
+  const [apptStatus, setApptStatus] = useState<'pending' | 'confirmed'>('pending');
 
   useEffect(() => {
     const socket = io('http://localhost:5000');
@@ -39,182 +49,242 @@ export default function Home() {
     };
   }, []);
 
-  const getStatusColor = (load: number) => {
-    if (load > 80) return 'bg-red-500';
-    if (load > 50) return 'bg-yellow-400';
-    return 'bg-green-500';
+  const getStatusDisplay = (load: number) => {
+    if (load > 80) return { text: '[CRITICAL SATURATION]', color: 'text-red-600', border: 'border-red-600', bg: 'bg-red-50' };
+    if (load > 50) return { text: '[MODERATE SURGE]', color: 'text-yellow-600', border: 'border-yellow-600', bg: 'bg-yellow-50' };
+    return { text: '[LOW CAPACITY]', color: 'text-green-600', border: 'border-green-600', bg: 'bg-green-50' };
   };
 
-  const getStatusText = (load: number) => {
-    if (load > 80) return 'Severe Saturation';
-    if (load > 50) return 'Moderate Surge';
-    return 'Low Capacity';
+  const handleCategorySwitch = (cat: 'Human' | 'Pet') => {
+    setCategory(cat);
+    setSelectedProfileId(cat === 'Human' ? mockProfiles.human[0].id : mockProfiles.pet[0].id);
+    setSearchQuery('');
   };
 
-  const handleFacilityClick = (f: any) => {
-    setSelectedFacility(f);
-    setShowDrawer(true);
+  const filteredFacilities = facilities.filter(f => 
+    f.type === category && 
+    f.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const activeProfiles = category === 'Human' ? mockProfiles.human : mockProfiles.pet;
+
+  const handleRequestAppt = (f: any) => {
+    setSelectedFacilityForAppt(f);
+    setApptStatus('pending');
+    setShowModal(true);
+  };
+
+  const confirmRequest = () => {
+    setApptStatus('confirmed');
+    setTimeout(() => {
+      setShowModal(false);
+    }, 3000);
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white text-gray-900 font-sans selection:bg-gray-200">
-      {/* Top Navbar: Stitch Precision */}
-      <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6 z-30 relative shrink-0">
-        <div className="flex items-center space-x-3">
-          <div className="h-4 w-4 bg-black rounded-sm"></div>
-          <h1 className="text-sm font-semibold tracking-wide text-black uppercase">HealthTrack Interface</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => window.location.href = '/staff'}
-            className="text-xs font-medium px-4 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors rounded-sm text-black"
-          >
-            Staff Portal
-          </button>
-        </div>
-      </header>
-
-      {/* Main Full-Bleed Canvas */}
-      <main className="flex-1 relative bg-[#fafafa] overflow-hidden">
-        {/* Map Decorative Grid */}
-        <div 
-          className="absolute inset-0 opacity-20 pointer-events-none" 
-          style={{ 
-            backgroundImage: 'linear-gradient(#d1d5db 1px, transparent 1px), linear-gradient(90deg, #d1d5db 1px, transparent 1px)', 
-            backgroundSize: '48px 48px' 
-          }}
-        ></div>
-
-        {/* Map Nodes */}
-        <div className="relative w-full h-full cursor-grab active:cursor-grabbing">
-          {facilities.map((f) => (
-            <div 
-              key={f.id} 
-              onClick={() => handleFacilityClick(f)}
-              className="absolute map-node flex items-center justify-center group cursor-pointer"
-              style={{ top: f.pos.top, left: f.pos.left, transform: 'translate(-50%, -50%)' }}
+    <div className="flex h-screen overflow-hidden bg-[var(--backdrop)] font-sans text-[var(--title)] selection:bg-gray-200">
+      
+      {/* Left Sidebar Workspace Pane */}
+      <aside className="w-80 bg-[var(--background)] stitch-border border-y-0 border-l-0 flex flex-col shrink-0 z-10 relative shadow-sm">
+        
+        {/* Header Section */}
+        <div className="p-6 border-b border-[var(--border)]">
+          <h1 className="text-sm font-bold tracking-tight text-[var(--title)] mb-6 leading-snug">
+            Smart Hospital Tracking<br/>and Appointment System
+          </h1>
+          
+          {/* Segmented Tab Matrix */}
+          <div className="flex w-full stitch-border p-1 bg-[var(--backdrop)]">
+            <button
+              onClick={() => handleCategorySwitch('Human')}
+              className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-none ${category === 'Human' ? 'bg-[var(--background)] text-[var(--title)] stitch-border shadow-sm' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
             >
-              <div className="relative flex flex-col items-center">
-                <div className={`h-6 w-6 rounded-full border-4 border-white shadow-sm z-10 ${getStatusColor(f.load)} group-hover:scale-110 transition-all duration-300`}></div>
-                <div className="absolute top-8 px-3 py-1.5 bg-white border border-gray-200 shadow-sm text-[10px] font-bold text-gray-900 z-20 whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:translate-y-1 transition-all">
-                  {f.name}
+              [ Human Care ]
+            </button>
+            <button
+              onClick={() => handleCategorySwitch('Pet')}
+              className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-none ${category === 'Pet' ? 'bg-[var(--background)] text-[var(--title)] stitch-border shadow-sm' : 'text-[var(--meta)] hover:text-[var(--title)] border border-transparent'}`}
+            >
+              [ Veterinary Care ]
+            </button>
+          </div>
+        </div>
+
+        {/* Polymorphic Profile Switcher */}
+        <div className="p-6 border-b border-[var(--border)] overflow-y-auto min-h-[16rem]">
+          <h2 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-4">Active System Profiles</h2>
+          <div className="space-y-3">
+            {activeProfiles.map((p: any) => {
+              const isSelected = selectedProfileId === p.id;
+              return (
+                <div 
+                  key={p.id}
+                  onClick={() => setSelectedProfileId(p.id)}
+                  className={`p-4 cursor-pointer transition-none relative group ${isSelected ? 'stitch-border border-[var(--title)] bg-[var(--backdrop)]' : 'stitch-border border-[var(--border)] bg-[var(--background)] hover:border-[var(--meta)]'}`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`text-xs font-bold ${isSelected ? 'text-[var(--title)]' : 'text-[var(--meta)] group-hover:text-[var(--title)]'}`}>{p.name}</span>
+                    {isSelected && <span className="h-2 w-2 rounded-full bg-[var(--title)]"></span>}
+                  </div>
+                  {category === 'Human' ? (
+                    <div className="flex justify-between text-[10px] text-[var(--meta)] border-t border-[var(--border)] pt-2 mt-2">
+                      <span>Age: <span className="mono font-bold text-[var(--title)]">{p.age}</span></span>
+                      <span>Blood: <span className="mono font-bold text-[var(--title)]">{p.bloodGroup}</span></span>
+                    </div>
+                  ) : (
+                    <div className="border-t border-[var(--border)] pt-2 mt-2">
+                      <div className="flex justify-between text-[10px] text-[var(--meta)] mb-2">
+                        <span>Species: <span className="font-bold text-[var(--title)]">{p.species}</span></span>
+                        <span>Breed: <span className="font-bold text-[var(--title)]">{p.breed}</span></span>
+                      </div>
+                      <div className="inline-block border border-green-600 text-green-700 bg-green-50 text-[9px] font-bold uppercase tracking-widest px-2 py-1">
+                        Vaccination Status Verified
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Floating Profile Widget */}
-        <div className="absolute top-6 left-6 w-80 bg-white border border-gray-200 shadow-sm z-20 flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Active Profile Context</h2>
-          </div>
-          <div className="p-4">
-            {/* Segmented Control */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-sm border border-gray-200 mb-4">
-              {['Human Profiles', 'Pet Profiles'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setProfileType(tab)}
-                  className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all ${
-                    profileType === tab ? 'bg-white text-black shadow-sm border border-gray-200' : 'text-gray-400 hover:text-gray-700'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-            
-            {/* Profile Data Key-Value Table */}
-            <div className="space-y-2 pt-2">
-              {profileType === 'Human Profiles' ? (
-                <>
-                  <div className="flex justify-between text-xs border-b border-gray-100 pb-2 mb-2">
-                    <span className="text-gray-500 font-medium">Name</span>
-                    <span className="font-bold text-gray-900">{mockProfiles.human.name}</span>
-                  </div>
-                  <div className="flex justify-between text-xs border-b border-gray-100 pb-2 mb-2">
-                    <span className="text-gray-500 font-medium">Blood Group</span>
-                    <span className="font-bold text-gray-900">{mockProfiles.human.bloodGroup}</span>
-                  </div>
-                  <div className="flex justify-between text-xs pb-1">
-                    <span className="text-gray-500 font-medium">Allergies (Encrypted)</span>
-                    <span className="font-bold text-gray-900">{mockProfiles.human.allergies}</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex justify-between text-xs border-b border-gray-100 pb-2 mb-2">
-                    <span className="text-gray-500 font-medium">Name</span>
-                    <span className="font-bold text-gray-900">{mockProfiles.pet.name}</span>
-                  </div>
-                  <div className="flex justify-between text-xs border-b border-gray-100 pb-2 mb-2">
-                    <span className="text-gray-500 font-medium">Species/Breed</span>
-                    <span className="font-bold text-gray-900">{mockProfiles.pet.species} &middot; {mockProfiles.pet.breed}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs pb-1">
-                    <span className="text-gray-500 font-medium">Vaccinations</span>
-                    <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-sm font-bold text-[10px] uppercase border border-green-200">
-                      {mockProfiles.pet.vaccinations}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Sliding Right Drawer Panel */}
-        <div 
-          className={`absolute top-0 right-0 h-full w-96 bg-white border-l border-gray-200 shadow-2xl z-30 transform transition-transform duration-500 ease-in-out ${
-            showDrawer ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          {selectedFacility && (
-            <div className="flex flex-col h-full">
-              <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Facility Diagnostics</h3>
-                <button 
-                  onClick={() => setShowDrawer(false)}
-                  className="text-gray-400 hover:text-black transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-              </div>
+        {/* Immediate Search/Filter Matrix */}
+        <div className="p-6 mt-auto border-t border-[var(--border)] bg-[var(--background)]">
+          <label className="block text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-2">Facility Search Hook</label>
+          <input
+            type="text"
+            placeholder="Search by name or district..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full stitch-border px-3 py-2 text-xs font-mono focus:outline-none focus:border-[var(--title)] focus:ring-1 focus:ring-[var(--title)] bg-[var(--backdrop)] placeholder-[var(--meta)]"
+          />
+        </div>
+      </aside>
 
-              <div className="p-8 flex-1 flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">{selectedFacility.name}</h2>
-                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-8">{selectedFacility.type} Dedicated Facility</div>
-                
-                {/* Live Metrics UI */}
-                <div className="bg-[#fafafa] border border-gray-200 p-6 rounded-sm flex items-center justify-between mb-8">
-                  <div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Queue Estimate</div>
-                    <div className="text-3xl font-mono font-medium text-black tracking-tight">{selectedFacility.estWait}</div>
+      {/* Right Main Stream Viewport Layout */}
+      <main className="flex-1 overflow-y-auto relative bg-[var(--backdrop)]">
+        {/* Top Action Bar */}
+        <div className="sticky top-0 bg-[var(--background)] border-b border-[var(--border)] px-8 py-4 flex justify-between items-center z-10 shadow-sm">
+           <h2 className="text-[11px] font-bold text-[var(--meta)] uppercase tracking-widest">Network Facility Grid &middot; Node BLR-01</h2>
+           <button 
+             onClick={() => window.location.href = '/staff'}
+             className="stitch-border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-white text-[var(--title)] hover:bg-[var(--backdrop)] transition-none"
+           >
+             Terminal Portal Access
+           </button>
+        </div>
+
+        <div className="p-8 max-w-6xl mx-auto space-y-5 pb-24">
+          {filteredFacilities.length === 0 ? (
+            <div className="p-12 stitch-border bg-[var(--background)] text-center">
+              <span className="text-xs font-bold text-[var(--meta)] uppercase tracking-widest">Zero facilities matching filter criteria</span>
+            </div>
+          ) : (
+            filteredFacilities.map(f => {
+              const status = getStatusDisplay(f.load);
+              return (
+                <div key={f.id} className="stitch-border bg-[var(--background)] p-6 flex items-stretch justify-between hover:border-[var(--meta)] transition-none group shadow-sm">
+                  
+                  {/* Left Column: Name & Address */}
+                  <div className="flex-[1.5] pr-8 border-r border-[var(--border)] flex flex-col justify-center">
+                    <h3 className="text-lg font-bold text-[var(--title)] leading-tight mb-2 group-hover:underline underline-offset-4 decoration-[var(--border)]">{f.name}</h3>
+                    <p className="text-xs text-[var(--meta)] font-medium">{f.address}</p>
                   </div>
-                  <div className="text-right">
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Live Capacity</div>
-                    <div className={`inline-flex items-center space-x-2 px-3 py-1.5 border rounded-sm ${
-                      selectedFacility.load > 80 ? 'bg-red-50 border-red-200 text-red-700' : 
-                      selectedFacility.load > 50 ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 
-                      'bg-green-50 border-green-200 text-green-700'
-                    }`}>
-                      <span className={`h-2 w-2 rounded-full ${getStatusColor(selectedFacility.load)} animate-pulse`}></span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest">{getStatusText(selectedFacility.load)}</span>
+                  
+                  {/* Middle Column: Live Congestion Threshold Index */}
+                  <div className="flex-1 px-8 border-r border-[var(--border)] flex flex-col justify-center items-start">
+                    <div className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Capacity Threshold State</div>
+                    <div className={`inline-block px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border ${status.border} ${status.color} ${status.bg}`}>
+                      {status.text}
                     </div>
                   </div>
+                  
+                  {/* Right Column: Wait Time & Action */}
+                  <div className="flex-1 pl-8 flex flex-col justify-between items-end">
+                    <div className="text-right mb-6">
+                      <div className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-2">Real-Time Queue Wait</div>
+                      <div className="text-xl font-bold mono text-[var(--title)] tracking-tight">Est. {f.estWait}</div>
+                    </div>
+                    <button 
+                      onClick={() => handleRequestAppt(f)}
+                      className="w-full stitch-border px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-[var(--title)] text-white hover:bg-black transition-none shadow-md"
+                    >
+                      [ Request Token ]
+                    </button>
+                  </div>
                 </div>
-
-                <div className="mt-auto pt-8 border-t border-gray-100">
-                  <button className="w-full bg-black text-white text-[11px] font-bold uppercase tracking-widest py-4 hover:bg-gray-800 transition-colors shadow-md">
-                    Secure Appointment Block
-                  </button>
-                </div>
-              </div>
-            </div>
+              );
+            })
           )}
         </div>
       </main>
+
+      {/* Appointment Confirmation Modal */}
+      {showModal && selectedFacilityForAppt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#24292F]/60 backdrop-blur-sm">
+          <div className="bg-[var(--background)] stitch-border w-full max-w-lg shadow-2xl relative">
+            
+            <div className="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--backdrop)]">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--title)]">Initialization Handshake</h3>
+              {apptStatus === 'pending' && (
+                <button onClick={() => setShowModal(false)} className="text-[var(--meta)] hover:text-[var(--title)] p-1 border border-transparent hover:border-[var(--border)]">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              )}
+            </div>
+
+            {apptStatus === 'pending' ? (
+              <div className="p-8">
+                <p className="text-xs font-medium text-[var(--meta)] leading-relaxed mb-8">
+                  You are generating a secure cryptographic token request for <strong className="text-[var(--title)] underline decoration-[var(--border)] underline-offset-2">{selectedFacilityForAppt.name}</strong>. This token block will reserve your identity position in the node schema prior to physical arrival.
+                </p>
+                
+                <div className="stitch-border p-4 bg-[var(--backdrop)] mb-8 flex justify-between items-center">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)]">Selected Binding Profile</span>
+                  <span className="text-xs font-bold text-[var(--title)] mono">
+                    {category === 'Human' ? mockProfiles.human.find(p=>p.id===selectedProfileId)?.name : mockProfiles.pet.find(p=>p.id===selectedProfileId)?.name}
+                  </span>
+                </div>
+
+                <div className="flex space-x-4">
+                  <button 
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 stitch-border py-3 text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] bg-[var(--background)] hover:bg-[var(--backdrop)] hover:text-[var(--title)] transition-none"
+                  >
+                    Abort Payload
+                  </button>
+                  <button 
+                    onClick={confirmRequest}
+                    className="flex-[2] stitch-border py-3 text-[10px] font-bold uppercase tracking-widest bg-[var(--title)] text-white hover:bg-black transition-none shadow-sm"
+                  >
+                    Confirm & Execute Request
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-10 flex flex-col items-center">
+                <div className="h-12 w-12 bg-green-100 border border-green-600 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--title)] mb-2">Token Request Initialized</h3>
+                <p className="text-xs font-medium text-[var(--meta)] text-center max-w-xs mb-8">
+                  Present this binding context to the front desk terminal upon arrival.
+                </p>
+                <div className="w-full h-1 bg-[var(--backdrop)]">
+                  <div className="h-full bg-green-600 animate-[progress_3s_linear_forwards]"></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes progress {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+      `}} />
     </div>
   );
 }
