@@ -29,6 +29,11 @@ export default function Home() {
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileDob, setNewProfileDob] = useState('');
   const [newProfileExtra, setNewProfileExtra] = useState(''); // bloodGroup or species
+  const [newProfileBreed, setNewProfileBreed] = useState('');
+
+  const isFormValid = newProfileType === 'Human'
+    ? !!(newProfileName && newProfileDob && newProfileExtra)
+    : !!(newProfileName && newProfileExtra && newProfileBreed);
 
   useEffect(() => {
     // Fetch profiles
@@ -55,12 +60,13 @@ export default function Home() {
 
   const handleAddProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
     const payload: any = { profileType: newProfileType, name: newProfileName, dob: newProfileDob || new Date().toISOString() };
     if (newProfileType === 'Human') {
       payload.bloodGroup = newProfileExtra || 'O+';
     } else {
       payload.species = newProfileExtra || 'Dog';
-      payload.breed = 'Unknown';
+      payload.breed = newProfileBreed || 'Unknown';
       payload.vaccinations = 'Verified';
     }
 
@@ -77,6 +83,7 @@ export default function Home() {
         setNewProfileName('');
         setNewProfileDob('');
         setNewProfileExtra('');
+        setNewProfileBreed('');
         setSelectedProfileId(newProf._id);
       }
     } catch (err) {
@@ -153,10 +160,11 @@ export default function Home() {
       
       {/* ---------------- MAP VIEW ---------------- */}
       {activeTab === 'Map' && (
-        <div className="absolute inset-0 map-bg">
+        <div className="absolute inset-0 flex flex-col z-10 bg-[#05070B]">
           {renderTopNav('Live Heatmap Dashboard')}
 
-          {/* Center Pill Switcher */}
+          <div className="relative flex-1 w-full h-[calc(100vh-8rem)] overflow-hidden flex flex-col bg-[#05070B] bg-[linear-gradient(rgba(33,38,45,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(33,38,45,0.6)_1px,transparent_1px)] bg-[size:60px_60px] border-[#21262D]">
+            {/* Center Pill Switcher */}
           <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex bg-[var(--panel)] border border-[var(--border)] rounded-full p-1 z-20 shadow-lg">
             <button 
               onClick={() => setMapCategory('Human Hospitals')}
@@ -283,6 +291,7 @@ export default function Home() {
               </div>
             </div>
           )}
+          </div>
         </div>
       )}
 
@@ -323,23 +332,35 @@ export default function Home() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Full Name</label>
+                    <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">{newProfileType === 'Human' ? 'Full Name' : 'Pet Name'}</label>
                     <input required type="text" value={newProfileName} onChange={(e) => setNewProfileName(e.target.value)} className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
                   </div>
                   {newProfileType === 'Human' ? (
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Blood Group</label>
-                      <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Age / DOB</label>
+                        <input required type="text" value={newProfileDob} onChange={(e) => setNewProfileDob(e.target.value)} placeholder="e.g. 1990-01-01" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Blood Group</label>
+                        <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} placeholder="e.g. O+" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
+                      </div>
+                    </>
                   ) : (
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Species</label>
-                      <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Species</label>
+                        <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} placeholder="e.g. Dog, Cat" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Breed</label>
+                        <input required type="text" value={newProfileBreed} onChange={(e) => setNewProfileBreed(e.target.value)} placeholder="e.g. Golden Retriever" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
+                      </div>
+                    </>
                   )}
                   <div className="pt-2 flex space-x-3">
                     <button type="button" onClick={() => setIsAddingProfile(false)} className="flex-1 py-2.5 border border-[var(--border)] rounded-lg text-xs font-bold text-white hover:bg-[var(--panel)]">Cancel</button>
-                    <button type="submit" className="flex-[2] py-2.5 bg-[var(--accent)] text-[#1E1E1E] rounded-lg text-xs font-bold hover:opacity-90">Save Profile</button>
+                    <button type="submit" disabled={!isFormValid} className={`flex-[2] py-2.5 rounded-lg text-xs font-bold transition-all border ${isFormValid ? 'bg-[var(--accent)] text-[#1E1E1E] hover:border-white/80 active:bg-white/10 hover:text-white cursor-pointer border-[#30363D]' : 'bg-[var(--border)] text-[var(--meta)] cursor-not-allowed border-transparent opacity-50'}`}>Save Profile</button>
                   </div>
                 </form>
               </div>
