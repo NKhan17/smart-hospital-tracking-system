@@ -34,7 +34,16 @@ router.post('/generate-qr', async (req, res) => {
 router.post('/scan', async (req, res) => {
   try {
     const { token } = req.body;
-    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: Missing or invalid authentication token' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
+    }
     
     const appointment = await Appointment.findById(decoded.appointmentId);
     if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
@@ -45,16 +54,16 @@ router.post('/scan', async (req, res) => {
     appointment.status = 'Checked-In/Completed';
     await appointment.save();
     
-    const facility = await Facility.findByIdAndUpdate(appointment.facilityId, { $inc: { liveLoad: 1 } }, { new: true });
+    const facility = await Facility.findByIdAndUpdate(appointment.facilityId, { $inc: { currentQueueCount: 1 } }, { new: true });
     
     const io = req.app.get('io');
     if (io && facility) {
-      io.emit('load-updated', { facilityId: facility._id, newLoad: facility.liveLoad });
+      io.emit('load-updated', { facilityId: facility._id, newLoad: facility.currentQueueCount });
     }
     
     res.json({ success: true, appointment, facility });
   } catch (error) {
-    res.status(400).json({ error: 'Invalid or expired token' });
+    res.status(500).json({ error: 'Internal Server Error during scanning process' });
   }
 });
 

@@ -9,7 +9,8 @@ export default function StaffPortal() {
   const [status, setStatus] = useState<'idle' | 'generating' | 'ready' | 'verified' | 'error'>('idle');
 
   useEffect(() => {
-    const socket = io('http://localhost:5000');
+    const backendUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.origin.replace('3000', '5000') : 'http://localhost:5000';
+    const socket = io(backendUrl, { withCredentials: true });
     socket.on('load-updated', () => {
       if (status === 'ready') setStatus('verified');
     });
@@ -21,10 +22,14 @@ export default function StaffPortal() {
   const handleGenerateQR = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('generating');
+    const backendUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.origin.replace('3000', '5000') : 'http://localhost:5000';
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/generate-qr', {
+      const res = await fetch(`${backendUrl}/api/appointments/generate-qr`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-auth-token-123'
+        },
         body: JSON.stringify({ appointmentId: bookingId })
       });
       if (res.ok) {

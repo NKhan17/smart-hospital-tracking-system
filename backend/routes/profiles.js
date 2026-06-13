@@ -7,6 +7,10 @@ const MOCK_USER_ID = new mongoose.Types.ObjectId('60e5a60b9432f700150b6a2b');
 
 router.post('/', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
+    }
     const { profileType, name, dob, ...rest } = req.body;
     let profile;
     
@@ -38,6 +42,10 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
+    }
     const profiles = await PatientProfile.find({ userId: MOCK_USER_ID });
     res.json(profiles.map(p => p.toJSON()));
   } catch (error) {

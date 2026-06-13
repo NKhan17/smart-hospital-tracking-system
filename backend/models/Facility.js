@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
 const FacilitySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  type: { type: String, enum: ['Human', 'Pet'], required: true },
-  liveLoad: { type: Number, default: 0 },
-  lat: { type: Number },
-  lng: { type: Number }
-});
+  name: { type: String, required: true, trim: true },
+  type: { type: String, required: true, enum: ['OPD', 'Lab', 'Pharmacy', 'Emergency', 'Ward'] },
+  floor: { type: Number, required: true },
+  roomNumber: { type: String, required: true },
+  currentQueueCount: { type: Number, default: 0 },
+  averageWaitTimeMin: { type: Number, default: 15 }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Facility', FacilitySchema);

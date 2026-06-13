@@ -36,8 +36,14 @@ export default function Home() {
     : !!(newProfileName && newProfileExtra && newProfileBreed);
 
   useEffect(() => {
+    const backendUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+      ? window.location.origin.replace('3000', '5000') 
+      : 'http://localhost:5000';
+
     // Fetch profiles
-    fetch('http://localhost:5000/api/profiles')
+    fetch(`${backendUrl}/api/profiles`, {
+      headers: { 'Authorization': 'Bearer mock-auth-token-123' }
+    })
       .then(res => res.json())
       .then(data => {
         if (data && Array.isArray(data)) {
@@ -49,7 +55,7 @@ export default function Home() {
       })
       .catch(err => console.error('Error fetching profiles', err));
 
-    const socket = io('http://localhost:5000');
+    const socket = io(backendUrl, { withCredentials: true });
     socket.on('load-updated', (data) => {
        if (data && data.facilityId) {
          setFacilities(prev => prev.map(f => f._id === data.facilityId ? { ...f, load: data.newLoad } : f));
@@ -70,10 +76,15 @@ export default function Home() {
       payload.vaccinations = 'Verified';
     }
 
+    const backendUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.origin.replace('3000', '5000') : 'http://localhost:5000';
+
     try {
-      const res = await fetch('http://localhost:5000/api/profiles', {
+      const res = await fetch(`${backendUrl}/api/profiles`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-auth-token-123'
+        },
         body: JSON.stringify(payload)
       });
       if (res.ok) {
@@ -94,10 +105,15 @@ export default function Home() {
   const handleBookAppointment = async () => {
     if (!selectedFacility || !selectedProfileId) return;
     
+    const backendUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.origin.replace('3000', '5000') : 'http://localhost:5000';
+
     try {
-      const res = await fetch('http://localhost:5000/api/appointments', {
+      const res = await fetch(`${backendUrl}/api/appointments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer mock-auth-token-123'
+        },
         body: JSON.stringify({ 
           patientId: selectedProfileId, 
           facilityId: selectedFacility._id, 
@@ -207,11 +223,11 @@ export default function Home() {
           </div>
 
           {/* Map Nodes */}
-          {facilities.filter(f => mapCategory.includes(f.type)).map(f => (
-            <div key={f._id} className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style={{ top: f.pos.top, left: f.pos.left }} onClick={() => setSelectedFacility(f)}>
+          {Array.isArray(facilities) && facilities.filter(f => f?.type && mapCategory.includes(f.type)).map(f => (
+            <div key={f._id} className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style={{ top: f.pos?.top || '50%', left: f.pos?.left || '50%' }} onClick={() => setSelectedFacility(f)}>
               <div className="flex items-center space-x-2 bg-[var(--panel)] border border-[var(--border)] rounded-full px-3 py-1.5 shadow-lg group-hover:border-[var(--accent)] transition-colors">
-                <div className={`w-2.5 h-2.5 rounded-full ${f.color}`}></div>
-                <span className="text-[10px] font-medium text-white">{f.name}: {f.status}</span>
+                <div className={`w-2.5 h-2.5 rounded-full ${f.color || 'bg-blue-500'}`}></div>
+                <span className="text-[10px] font-medium text-white">{f.name || 'Unknown'}: {f.status || 'Active'}</span>
               </div>
               <div className="absolute left-1/2 bottom-[-8px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[var(--panel)] transform -translate-x-1/2 group-hover:border-t-[var(--accent)] transition-colors"></div>
             </div>
@@ -242,7 +258,8 @@ export default function Home() {
                   <h3 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Select Patient Profile</h3>
                   <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
                     {/* Profiles */}
-                    {profiles.map(prof => {
+                    {Array.isArray(profiles) && profiles.map(prof => {
+                      if (!prof || !prof.name) return null;
                       const info = getProfileDisplayInfo(prof);
                       return (
                         <div 
@@ -304,20 +321,23 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-6">Family Profiles</h2>
             
             <div className="space-y-4 mb-8">
-              {profiles.map((p: any) => (
-                <div key={p._id} className="glass-panel p-4 flex justify-between items-center cursor-pointer hover:border-white/50" onClick={() => { setSelectedProfileId(p._id); setActiveTab('Map'); }}>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-full bg-[#0D1117] flex items-center justify-center border border-[var(--border)]">
-                      <svg className="w-5 h-5 text-[var(--meta)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
+              {Array.isArray(profiles) && profiles.map((p: any) => {
+                if (!p) return null;
+                return (
+                  <div key={p._id} className="glass-panel p-4 flex justify-between items-center cursor-pointer hover:border-white/50" onClick={() => { setSelectedProfileId(p._id); setActiveTab('Map'); }}>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 rounded-full bg-[#0D1117] flex items-center justify-center border border-[var(--border)]">
+                        <svg className="w-5 h-5 text-[var(--meta)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white">{p.name || 'Unknown'}</h3>
+                        <p className="text-xs text-[var(--meta)]">{p.profileType || 'Patient'} Profile</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white">{p.name}</h3>
-                      <p className="text-xs text-[var(--meta)]">{p.profileType} Profile</p>
-                    </div>
+                    <svg className="w-5 h-5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                   </div>
-                  <svg className="w-5 h-5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {isAddingProfile ? (
@@ -400,7 +420,7 @@ export default function Home() {
                   <div>
                     <div className="text-[10px] text-[var(--meta)] mb-1">Patient Identity</div>
                     <div className="text-sm font-bold text-white">
-                      {profiles.find(p=>p._id === activeTicket.patientId)?.name || 'Unknown'}
+                      {Array.isArray(profiles) ? profiles.find(p=>p && p._id === activeTicket.patientId)?.name || 'Unknown' : 'Unknown'}
                     </div>
                   </div>
                   <div className="text-right">
