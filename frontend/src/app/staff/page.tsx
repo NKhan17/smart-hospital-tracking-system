@@ -2,6 +2,19 @@
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { io } from 'socket.io-client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Monitor, 
+  ListOrdered, 
+  ActivitySquare, 
+  LogOut, 
+  ShieldCheck, 
+  QrCode, 
+  ScanLine,
+  CheckCircle2,
+  XCircle,
+  RefreshCcw
+} from 'lucide-react';
 
 export default function StaffPortal() {
   const [bookingId, setBookingId] = useState('');
@@ -46,114 +59,161 @@ export default function StaffPortal() {
   };
 
   return (
-    <div className="flex h-screen bg-[var(--background)] font-sans text-white selection:bg-[#30363D]">
+    <div className="flex h-screen bg-[var(--background)] font-sans text-white selection:bg-white/20">
       {/* Left Sidebar: Nav */}
-      <aside className="w-64 border-r border-[var(--border)] bg-[#05070B] flex flex-col z-10 shrink-0">
-        <div className="h-16 border-b border-[var(--border)] flex items-center px-6">
-          <div className="w-8 h-8 rounded-full bg-[var(--accent)] text-[#1E1E1E] flex items-center justify-center mr-3 font-bold text-lg">+</div>
-          <span className="text-sm font-bold uppercase tracking-widest text-white">Staff Terminal</span>
+      <aside className="w-64 border-r border-white/5 bg-[#030507] flex flex-col z-10 shrink-0">
+        <div className="h-20 border-b border-white/5 flex items-center px-6">
+          <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center mr-4 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="block text-xs font-bold uppercase tracking-widest text-white leading-tight">Staff Node</span>
+            <span className="block text-[9px] text-[var(--meta)] tracking-wider">SECURE TERMINAL</span>
+          </div>
         </div>
-        <div className="p-4 space-y-3">
-          <button className="w-full text-left px-4 py-3 text-xs font-bold text-[#1E1E1E] uppercase tracking-widest bg-[var(--accent)] border border-[var(--border)] rounded-xl shadow-[0_0_15px_rgba(147,197,253,0.3)]">Desk Terminal</button>
-          <button className="w-full text-left px-4 py-3 text-xs font-bold text-[var(--meta)] uppercase tracking-widest hover:text-white hover:bg-[var(--panel)] border border-transparent rounded-xl transition-colors">Queue Board</button>
-          <button className="w-full text-left px-4 py-3 text-xs font-bold text-[var(--meta)] uppercase tracking-widest hover:text-white hover:bg-[var(--panel)] border border-transparent rounded-xl transition-colors">Diagnostics</button>
+        
+        <div className="p-6 space-y-4">
+          <button className="w-full flex items-center text-left px-4 py-3.5 text-xs font-bold text-black uppercase tracking-widest bg-white border border-white rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all">
+            <Monitor className="w-4 h-4 mr-3" />
+            Scanner
+          </button>
+          <button className="w-full flex items-center text-left px-4 py-3.5 text-xs font-bold text-[var(--meta)] uppercase tracking-widest hover:text-white hover:bg-white/5 border border-transparent rounded-2xl transition-all">
+            <ListOrdered className="w-4 h-4 mr-3" />
+            Queue Data
+          </button>
+          <button className="w-full flex items-center text-left px-4 py-3.5 text-xs font-bold text-[var(--meta)] uppercase tracking-widest hover:text-white hover:bg-white/5 border border-transparent rounded-2xl transition-all">
+            <ActivitySquare className="w-4 h-4 mr-3" />
+            Diagnostics
+          </button>
         </div>
-        <div className="mt-auto border-t border-[var(--border)] p-4">
+        
+        <div className="mt-auto border-t border-white/5 p-6">
           <button 
             onClick={() => window.location.href = '/'}
-            className="w-full text-center px-4 py-3 border border-[var(--border)] bg-[var(--panel)] text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] hover:text-white hover:border-[var(--meta)] transition-colors rounded-xl"
+            className="w-full flex items-center justify-center px-4 py-3.5 border border-white/10 bg-black/50 text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] hover:text-white hover:border-white/30 hover:bg-white/5 transition-all rounded-2xl"
           >
-            Return to Map
+            <LogOut className="w-4 h-4 mr-2" />
+            Exit Terminal
           </button>
         </div>
       </aside>
 
       {/* Main Administrative Console */}
-      <main className="flex-1 flex flex-col overflow-hidden relative bg-[#0D1117] map-bg">
-        <header className="h-16 border-b border-[var(--border)] bg-[var(--panel)]/80 backdrop-blur-md flex items-center px-8 shrink-0 shadow-lg z-10">
-          <h2 className="text-sm font-bold text-white uppercase tracking-widest">Access Control Scanner</h2>
+      <main className="flex-1 flex flex-col overflow-hidden relative bg-[#030507] map-bg">
+        <header className="h-20 border-b border-white/5 bg-[var(--panel-solid)]/40 backdrop-blur-xl flex items-center justify-between px-10 shrink-0 z-10">
+          <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center">
+            <ScanLine className="w-5 h-5 mr-3 text-[var(--meta)]" />
+            Access Control Handshake
+          </h2>
+          <div className="flex items-center text-[10px] text-green-400 font-bold bg-green-400/10 px-3 py-1.5 rounded-full uppercase tracking-widest border border-green-400/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse mr-2"></span>
+            Socket Live
+          </div>
         </header>
 
-        <div className="flex-1 p-8 flex items-center justify-center relative overflow-y-auto">
-          <div className="w-full max-w-lg glass-panel relative z-10 overflow-hidden">
-            <div className="px-8 py-5 border-b border-[var(--border)] bg-[#05070B]/50 flex justify-between items-center">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--meta)]">Secure Handshake Console</h3>
-              <div className="flex items-center text-[10px] text-green-400 font-bold bg-green-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse mr-1.5"></span>
-                System Live
+        <div className="flex-1 p-10 flex items-center justify-center relative overflow-y-auto">
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={status}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-lg glass-panel relative z-10 overflow-hidden"
+            >
+              
+              <div className="p-10">
+                {status === 'idle' || status === 'generating' || status === 'error' ? (
+                  <form onSubmit={handleGenerateQR}>
+                    <div className="mb-10 text-center">
+                      <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
+                        <QrCode className="w-8 h-8 text-[var(--meta)]" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white tracking-tight mb-2">Hash Validator</h3>
+                      <p className="text-sm text-[var(--meta)]">Enter the patient&apos;s cryptographic ID</p>
+                    </div>
+
+                    <div className="mb-8">
+                      <input 
+                        type="text" 
+                        className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 px-5 text-sm font-mono text-center text-white placeholder-[var(--meta)] focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/50 transition-all shadow-inner"
+                        placeholder="e.g. 60e5a60b..."
+                        value={bookingId}
+                        onChange={(e) => setBookingId(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <button 
+                      type="submit" 
+                      className="w-full bg-white text-black text-xs font-bold uppercase tracking-widest py-4 rounded-2xl hover:bg-gray-200 transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center"
+                      disabled={status === 'generating'}
+                    >
+                      {status === 'generating' ? (
+                        <RefreshCcw className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                      )}
+                      {status === 'generating' ? 'Validating AES Link...' : 'Issue Cryptographic Pass'}
+                    </button>
+                  </form>
+                ) : status === 'ready' ? (
+                  <div className="flex flex-col items-center">
+                    <div className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-8 border border-white/10 bg-white/5 px-5 py-2 rounded-full">Client Device Scan Required</div>
+                    
+                    <div className="p-6 border border-white/10 bg-white rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)] mb-10 relative group hover:scale-105 transition-transform duration-500">
+                      <QRCodeSVG value={qrToken || ''} size={220} bgColor="transparent" fgColor="#030507" />
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 text-xs text-white font-mono font-medium mb-10 px-6 py-3.5 bg-white/5 border border-white/10 rounded-2xl w-full justify-center">
+                      <span className="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+                      <span>Awaiting external client hash verification...</span>
+                    </div>
+                    
+                    <div className="flex space-x-4 w-full">
+                      <button 
+                        onClick={() => setStatus('verified')}
+                        className="flex-[2] flex justify-center items-center border border-white/10 bg-black/50 py-4 text-xs font-bold uppercase tracking-widest text-[var(--meta)] hover:text-white hover:border-white/50 transition-all rounded-2xl"
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Force Mock Complete
+                      </button>
+                      <button 
+                        onClick={() => setStatus('idle')}
+                        className="flex-1 flex justify-center items-center border border-red-500/30 bg-red-500/10 py-4 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/20 transition-all rounded-2xl"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center py-10">
+                    <motion.div 
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                      className="h-24 w-24 bg-green-400/10 text-green-400 flex items-center justify-center rounded-full mb-8 border border-green-400/30 shadow-[0_0_30px_rgba(74,222,128,0.2)]"
+                    >
+                      <CheckCircle2 className="w-12 h-12" />
+                    </motion.div>
+                    
+                    <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">Handshake Verified</h3>
+                    <p className="text-sm text-[var(--meta)] mb-12 text-center px-4 font-medium leading-relaxed">
+                      Cryptographic signature validated successfully. The main topological map has received instantaneous load increments.
+                    </p>
+                    
+                    <button 
+                      onClick={() => { setBookingId(''); setStatus('idle'); }}
+                      className="w-full flex items-center justify-center bg-white text-black text-xs font-bold uppercase tracking-widest py-4 rounded-2xl hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                    >
+                      <RefreshCcw className="w-4 h-4 mr-2" />
+                      Clear Terminal
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <div className="p-10">
-              {status === 'idle' || status === 'generating' || status === 'error' ? (
-                <form onSubmit={handleGenerateQR}>
-                  <div className="mb-8">
-                    <label className="block text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Incoming Patient ID (Hash)</label>
-                    <input 
-                      type="text" 
-                      className="w-full bg-[#05070B] border border-[var(--border)] rounded-xl py-3.5 px-4 text-sm font-mono text-white placeholder-[var(--meta)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-shadow"
-                      placeholder="e.g. 60e5a60b9432f700150b6a3b"
-                      value={bookingId}
-                      onChange={(e) => setBookingId(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <button 
-                    type="submit" 
-                    className="w-full bg-[var(--accent)] text-[#1E1E1E] text-xs font-bold uppercase tracking-widest py-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-[0_0_15px_rgba(147,197,253,0.3)]"
-                    disabled={status === 'generating'}
-                  >
-                    {status === 'generating' ? 'Validating AES Link...' : 'Issue Cryptographic Pass'}
-                  </button>
-                </form>
-              ) : status === 'ready' ? (
-                <div className="flex flex-col items-center animate-fade-in">
-                  <div className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-6 border border-[var(--border)] px-4 py-1.5 rounded-full">Client Device Scan Required</div>
-                  <div className="p-4 border border-[var(--border)] bg-[#05070B] rounded-xl shadow-lg mb-8 relative">
-                    <div className="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-[var(--accent)] rounded-tl"></div>
-                    <div className="absolute -top-3 -right-3 w-6 h-6 border-t-2 border-r-2 border-[var(--accent)] rounded-tr"></div>
-                    <div className="absolute -bottom-3 -left-3 w-6 h-6 border-b-2 border-l-2 border-[var(--accent)] rounded-bl"></div>
-                    <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-[var(--accent)] rounded-br"></div>
-                    <QRCodeSVG value={qrToken || ''} size={220} bgColor="transparent" fgColor="#F0F6FC" />
-                  </div>
-                  <div className="flex items-center space-x-3 text-xs text-[var(--accent)] font-mono font-bold mb-8 px-5 py-3 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-xl">
-                    <span className="h-2 w-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
-                    <span>Awaiting external client hash verification...</span>
-                  </div>
-                  <div className="flex space-x-4 w-full">
-                    <button 
-                      onClick={() => setStatus('verified')}
-                      className="flex-1 border border-[var(--border)] bg-[#05070B] py-3 text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] hover:text-white hover:border-[var(--meta)] transition-colors rounded-xl"
-                    >
-                      Mock Complete
-                    </button>
-                    <button 
-                      onClick={() => setStatus('idle')}
-                      className="flex-1 border border-red-500/30 bg-red-500/10 py-3 text-[10px] font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/20 transition-colors rounded-xl"
-                    >
-                      Revoke Key
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center animate-fade-in py-8">
-                  <div className="h-20 w-20 bg-green-500/10 text-green-500 flex items-center justify-center rounded-full mb-6 border border-green-500/30 shadow-[0_0_20px_rgba(34,197,94,0.2)]">
-                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3 tracking-tight">Handshake Verified</h3>
-                  <p className="text-sm text-[var(--meta)] mb-10 text-center px-4 font-medium leading-relaxed">
-                    Cryptographic signature validated successfully. The main topological map has received instantaneous load increments.
-                  </p>
-                  <button 
-                    onClick={() => { setBookingId(''); setStatus('idle'); }}
-                    className="w-full bg-[var(--accent)] text-[#1E1E1E] text-xs font-bold uppercase tracking-widest py-4 rounded-xl hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(147,197,253,0.3)]"
-                  >
-                    Clear Terminal
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

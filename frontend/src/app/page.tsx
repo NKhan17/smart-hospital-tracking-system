@@ -2,6 +2,20 @@
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { QRCodeSVG } from 'qrcode.react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Map as MapIcon, 
+  Users, 
+  Ticket as TicketIcon, 
+  Search, 
+  Plus, 
+  X, 
+  Activity, 
+  User, 
+  ScanLine, 
+  ChevronRight, 
+  AlertCircle 
+} from 'lucide-react';
 
 const mockFacilitiesData = [
   { _id: '60e5a60b9432f700150b6a3b', name: 'Hebbal Veterinary Hospital', type: 'Ward', currentQueueCount: 20, estWait: '5 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '35%', left: '30%' } },
@@ -172,333 +186,420 @@ export default function Home() {
   };
 
   const renderTopNav = (title: string) => (
-    <div className="flex justify-between items-center p-4 z-20 relative">
+    <div className="flex justify-between items-center p-6 z-20 relative backdrop-blur-md bg-transparent border-b border-white/5">
       <div className="flex items-center space-x-4">
-        <svg className="w-5 h-5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-        <div className="w-6 h-6 rounded-full bg-[var(--border)] flex items-center justify-center">
-          <svg className="w-4 h-4 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <div className="w-8 h-8 rounded-full bg-[var(--panel-solid)] border border-white/10 shadow-lg flex items-center justify-center">
+          <Activity className="w-4 h-4 text-[var(--accent)]" />
         </div>
-        <span className="text-sm font-medium text-[var(--meta)]">{title}</span>
+        <span className="text-sm font-semibold tracking-wide text-white">{title}</span>
       </div>
       <div className="flex items-center space-x-4 text-[var(--meta)]">
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-        <svg className="w-5 h-5 cursor-pointer hover:text-white" onClick={() => window.location.href = '/staff'} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg>
+        <div className="w-8 h-8 rounded-full bg-[var(--panel-solid)] border border-white/10 flex items-center justify-center hover:text-white transition-colors cursor-pointer">
+          <User className="w-4 h-4" />
+        </div>
+        <div onClick={() => window.location.href = '/staff'} className="w-8 h-8 rounded-full bg-[var(--panel-solid)] border border-white/10 flex items-center justify-center hover:text-white transition-colors cursor-pointer shadow-lg">
+          <ScanLine className="w-4 h-4" />
+        </div>
       </div>
     </div>
   );
 
   const renderBottomNav = () => (
-    <div className="absolute bottom-0 w-full h-20 bg-[var(--background)] border-t border-[var(--border)] flex justify-center items-center space-x-16 z-30 px-6">
-      <button onClick={() => setActiveTab('Map')} className={`flex flex-col items-center justify-center w-20 h-12 rounded-full ${activeTab === 'Map' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'text-[var(--meta)] hover:text-white'}`}>
-        <svg className="w-5 h-5 mb-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clipRule="evenodd"></path></svg>
-        <span className="text-[10px] font-medium">Map</span>
-      </button>
-      <button onClick={() => setActiveTab('Profiles')} className={`flex flex-col items-center justify-center w-20 h-12 rounded-full ${activeTab === 'Profiles' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'text-[var(--meta)] hover:text-white'}`}>
-        <svg className="w-5 h-5 mb-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
-        <span className="text-[10px] font-medium">Profiles</span>
-      </button>
-      <button onClick={() => setActiveTab('Tickets')} className={`flex flex-col items-center justify-center w-20 h-12 rounded-full ${activeTab === 'Tickets' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}>
-        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
-        <span className="text-[10px] font-bold">Tickets</span>
-      </button>
+    <div className="absolute bottom-0 w-full pb-8 pt-4 bg-gradient-to-t from-[#030507] via-[#030507]/90 to-transparent flex justify-center items-center space-x-6 z-30 px-6">
+      {[
+        { id: 'Map', icon: MapIcon, label: 'Map' },
+        { id: 'Profiles', icon: Users, label: 'Profiles' },
+        { id: 'Tickets', icon: TicketIcon, label: 'Tickets' }
+      ].map((tab) => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+        return (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as 'Map' | 'Profiles' | 'Tickets')} 
+            className={`relative flex flex-col items-center justify-center w-24 h-16 rounded-2xl transition-all duration-300 ${isActive ? 'text-white' : 'text-[var(--meta)] hover:text-white hover:bg-white/5'}`}
+          >
+            {isActive && (
+              <motion.div 
+                layoutId="nav-pill" 
+                className="absolute inset-0 bg-white/10 border border-white/10 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.05)]" 
+              />
+            )}
+            <Icon className={`w-5 h-5 mb-1.5 z-10 transition-colors ${isActive ? 'text-[var(--accent)]' : ''}`} />
+            <span className="text-[10px] font-semibold tracking-widest uppercase z-10">{tab.label}</span>
+          </button>
+        )
+      })}
     </div>
   );
 
   return (
-    <div className="relative w-full h-screen bg-[var(--background)] overflow-hidden font-sans border-4 border-[#30363D] rounded-xl m-auto my-2 shadow-2xl max-w-6xl">
-      
-      {/* ---------------- MAP VIEW ---------------- */}
-      {activeTab === 'Map' && (
-        <div className="absolute inset-0 flex flex-col z-10 bg-[#05070B]">
-          {renderTopNav('Live Heatmap Dashboard')}
+    <div className="relative w-full h-screen bg-[var(--background)] overflow-hidden font-sans border border-white/5 md:border-4 md:border-[#30363D] md:rounded-3xl m-auto md:my-4 shadow-2xl max-w-6xl">
+      <AnimatePresence mode="wait">
+        
+        {/* ---------------- MAP VIEW ---------------- */}
+        {activeTab === 'Map' && (
+          <motion.div 
+            key="map"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 flex flex-col z-10 bg-[#030507]"
+          >
+            {renderTopNav('Live Heatmap Dashboard')}
 
-          <div className="relative flex-1 w-full h-[calc(100vh-8rem)] overflow-hidden flex flex-col bg-[#05070B] bg-[linear-gradient(rgba(33,38,45,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(33,38,45,0.6)_1px,transparent_1px)] bg-[size:60px_60px] border-[#21262D]">
-            {/* Center Pill Switcher */}
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex bg-[var(--panel)] border border-[var(--border)] rounded-full p-1 z-20 shadow-lg">
-            <button 
-              onClick={() => setMapCategory('General Care')}
-              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'General Care' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
-            >
-              General Care
-            </button>
-            <button 
-              onClick={() => setMapCategory('Specialized & Emergency')}
-              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'Specialized & Emergency' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
-            >
-              Specialized & Emergency
-            </button>
-          </div>
-
-          {/* Left Floating Cards */}
-          <div className="absolute left-6 top-24 space-y-4 z-20 w-64 pointer-events-none">
-            <div className="glass-panel p-4 pointer-events-auto">
-              <h3 className="text-sm font-bold text-white mb-4">Live Queue Status</h3>
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-xs text-[var(--meta)]">Current Crowd Level</span>
-                <span className="text-sm font-bold text-green-400">64%</span>
-              </div>
-              <div className="w-full h-1 bg-[var(--border)] rounded-full mb-3">
-                <div className="h-full bg-green-400 rounded-full" style={{width: '64%'}}></div>
-              </div>
-              <div className="text-[10px] text-[var(--meta)] flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Updated Live
-              </div>
-            </div>
-            
-            <div className="glass-panel p-4 pointer-events-auto">
-              <h3 className="text-sm font-bold text-white mb-3">Facility Search</h3>
-              <div className="relative">
-                <svg className="w-4 h-4 absolute left-3 top-2.5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" placeholder="Search for Hospitals..." className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2 pl-9 pr-3 text-xs text-white placeholder-[var(--meta)] focus:outline-none focus:border-[var(--accent)]" />
-              </div>
-            </div>
-          </div>
-
-          {/* Map Nodes */}
-          {Array.isArray(facilities) && facilities.filter(f => {
-            if (!f?.type) return false;
-            if (mapCategory === 'General Care') return ['OPD', 'Ward', 'Human', 'Pet'].includes(f.type);
-            return ['Lab', 'Pharmacy', 'Emergency'].includes(f.type);
-          }).map(f => (
-            <div key={f._id} className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style={{ top: f.pos?.top || '50%', left: f.pos?.left || '50%' }} onClick={() => setSelectedFacility(f)}>
-              <div className="flex items-center space-x-2 bg-[var(--panel)] border border-[var(--border)] rounded-full px-3 py-1.5 shadow-lg group-hover:border-[var(--accent)] transition-colors">
-                <div className={`w-2.5 h-2.5 rounded-full ${f.color || 'bg-blue-500'}`}></div>
-                <span className="text-[10px] font-medium text-white">{f.name || 'Unknown'}: Queue {f.currentQueueCount || f.load || 0}</span>
-              </div>
-              <div className="absolute left-1/2 bottom-[-8px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[var(--panel)] transform -translate-x-1/2 group-hover:border-t-[var(--accent)] transition-colors"></div>
-            </div>
-          ))}
-
-          {/* Booking Modal Overlay */}
-          {selectedFacility && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-40 flex flex-col justify-end pb-24 items-center animate-fade-in">
-              <div className="w-full max-w-md glass-panel p-6 shadow-2xl relative overflow-hidden">
-                <button onClick={() => setSelectedFacility(null)} className="absolute top-4 right-4 text-[var(--meta)] hover:text-white">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <div className="relative flex-1 w-full h-[calc(100vh-8rem)] overflow-hidden flex flex-col map-bg">
+              {/* Center Pill Switcher */}
+              <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex bg-[var(--panel-solid)]/80 backdrop-blur-xl border border-white/10 rounded-full p-1.5 z-20 shadow-2xl">
+                <button 
+                  onClick={() => setMapCategory('General Care')}
+                  className={`px-6 py-2.5 text-xs font-bold rounded-full transition-all duration-300 ${mapCategory === 'General Care' ? 'bg-white text-black shadow-lg' : 'text-[var(--meta)] hover:text-white'}`}
+                >
+                  General Care
                 </button>
-                
-                <div className="mb-6 pr-8">
-                  <div className="flex justify-between items-start mb-1">
-                    <h2 className="text-lg font-bold text-white leading-tight">{selectedFacility.name}</h2>
-                    <span className="flex items-center text-[10px] font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse"></span> LIVE
-                    </span>
+                <button 
+                  onClick={() => setMapCategory('Specialized & Emergency')}
+                  className={`px-6 py-2.5 text-xs font-bold rounded-full transition-all duration-300 ${mapCategory === 'Specialized & Emergency' ? 'bg-white text-black shadow-lg' : 'text-[var(--meta)] hover:text-white'}`}
+                >
+                  Specialized & Emergency
+                </button>
+              </div>
+
+              {/* Left Floating Cards */}
+              <div className="absolute left-6 top-24 space-y-4 z-20 w-72 pointer-events-none hidden md:block">
+                <div className="glass-panel p-5 pointer-events-auto">
+                  <h3 className="text-sm font-semibold text-white mb-4">Live Queue Status</h3>
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-xs text-[var(--meta)] tracking-wide">Congestion Level</span>
+                    <span className="text-sm font-bold text-green-400">64%</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs text-[var(--meta)]">
-                    <p>General OPD & Consultation &bull; {selectedFacility.estWait} Wait Time</p>
-                    <p className="font-bold text-[var(--accent)] whitespace-nowrap ml-2">Est. Wait: {selectedFacility.estWait}</p>
+                  <div className="w-full h-1.5 bg-black/50 rounded-full mb-3 overflow-hidden border border-white/5">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: '64%' }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" 
+                    />
+                  </div>
+                  <div className="text-[10px] uppercase tracking-widest text-[var(--meta)] flex items-center">
+                    <Activity className="w-3 h-3 mr-1.5" />
+                    Updated Live
                   </div>
                 </div>
+                
+                <div className="glass-panel p-5 pointer-events-auto">
+                  <h3 className="text-sm font-semibold text-white mb-4">Facility Search</h3>
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3.5 top-3 text-[var(--meta)]" />
+                    <input type="text" placeholder="Search for Hospitals..." className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-[var(--meta)] focus:outline-none focus:border-[var(--accent)] transition-colors shadow-inner" />
+                  </div>
+                </div>
+              </div>
 
-                <div className="mb-6">
-                  <h3 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Select Patient Profile</h3>
-                  <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
-                    {/* Profiles */}
-                    {Array.isArray(profiles) && profiles.map(prof => {
-                      if (!prof || !prof.name) return null;
-                      const info = getProfileDisplayInfo(prof);
-                      return (
-                        <div 
-                          key={prof._id}
-                          onClick={() => setSelectedProfileId(prof._id)}
-                          className={`flex-shrink-0 w-24 h-28 rounded-xl border flex flex-col items-center justify-center p-2 cursor-pointer transition-colors ${
-                            selectedProfileId === prof._id ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--border)] bg-[#0D1117] hover:border-[var(--meta)]'
-                          }`}
-                        >
-                          <div className="w-10 h-10 rounded-full bg-[var(--panel)] mb-3 flex items-center justify-center overflow-hidden border border-[var(--border)]">
-                             <svg className="w-6 h-6 text-[var(--meta)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">
-                            {info.first}<br/>
-                            <span className="text-[9px] text-[var(--meta)]">{info.second}</span>
+              {/* Map Nodes */}
+              {Array.isArray(facilities) && facilities.filter(f => {
+                if (!f?.type) return false;
+                if (mapCategory === 'General Care') return ['OPD', 'Ward', 'Human', 'Pet'].includes(f.type);
+                return ['Lab', 'Pharmacy', 'Emergency'].includes(f.type);
+              }).map(f => (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={f._id} 
+                  className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" 
+                  style={{ top: f.pos?.top || '50%', left: f.pos?.left || '50%' }} 
+                  onClick={() => setSelectedFacility(f)}
+                >
+                  <div className="flex items-center space-x-2 bg-[var(--panel-solid)]/90 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 shadow-xl group-hover:border-[var(--accent)] group-hover:shadow-[0_0_20px_rgba(147,197,253,0.2)] transition-all">
+                    <div className={`w-2.5 h-2.5 rounded-full ${f.color || 'bg-blue-500'} shadow-[0_0_10px_currentColor]`}></div>
+                    <span className="text-[10px] font-bold tracking-wide text-white">{f.name || 'Unknown'} <span className="text-[var(--meta)] font-normal ml-1">&bull; Queue {f.currentQueueCount || f.load || 0}</span></span>
+                  </div>
+                  <div className="absolute left-1/2 bottom-[-6px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white/10 transform -translate-x-1/2 group-hover:border-t-[var(--accent)] transition-colors"></div>
+                </motion.div>
+              ))}
+
+              {/* Booking Modal Overlay */}
+              <AnimatePresence>
+                {selectedFacility && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm z-40 flex flex-col justify-end pb-32 px-4 items-center"
+                  >
+                    <motion.div 
+                      initial={{ y: 100, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 100, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="w-full max-w-md glass-panel p-6 shadow-2xl relative overflow-hidden border border-white/10"
+                    >
+                      <button onClick={() => setSelectedFacility(null)} className="absolute top-4 right-4 p-2 text-[var(--meta)] hover:text-white hover:bg-white/5 rounded-full transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                      
+                      <div className="mb-6 pr-10">
+                        <div className="flex justify-between items-start mb-2">
+                          <h2 className="text-xl font-bold text-white leading-tight tracking-tight">{selectedFacility.name}</h2>
+                          <span className="flex items-center text-[10px] font-bold text-green-400 bg-green-400/10 px-2.5 py-1 rounded-full uppercase tracking-wider border border-green-400/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse"></span> LIVE
                           </span>
                         </div>
-                      )
-                    })}
-                    {/* New Profile Button */}
-                    <div 
-                      onClick={() => {
-                        setIsAddingProfile(true);
-                        setActiveTab('Profiles');
-                        // DO NOT nullify selectedFacility, so they return right back here
-                      }}
-                      className="flex-shrink-0 w-24 h-28 rounded-xl border border-dashed border-[var(--border)] bg-transparent flex flex-col items-center justify-center p-2 cursor-pointer hover:border-[var(--meta)]"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-[var(--panel)] mb-3 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                        <div className="flex justify-between items-center text-xs text-[var(--meta)] font-medium">
+                          <p>{selectedFacility.type} Care Unit</p>
+                          <p className="text-[var(--accent)] whitespace-nowrap ml-2 bg-[var(--accent)]/10 px-2 py-0.5 rounded-md border border-[var(--accent)]/20">Est. Wait: {selectedFacility.estWait}</p>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-[var(--meta)]">New Profile</span>
+
+                      <div className="mb-8">
+                        <h3 className="text-[10px] font-bold text-[var(--meta)] uppercase tracking-widest mb-3">Select Patient Profile</h3>
+                        <div className="flex space-x-3 overflow-x-auto pb-2 custom-scroll">
+                          {/* Profiles */}
+                          {Array.isArray(profiles) && profiles.map(prof => {
+                            if (!prof || !prof.name) return null;
+                            const info = getProfileDisplayInfo(prof);
+                            const isSelected = selectedProfileId === prof._id;
+                            return (
+                              <motion.div 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                key={prof._id}
+                                onClick={() => setSelectedProfileId(prof._id)}
+                                className={`flex-shrink-0 w-24 h-28 rounded-2xl border flex flex-col items-center justify-center p-2 cursor-pointer transition-all duration-300 ${
+                                  isSelected ? 'border-[var(--accent)] bg-[var(--accent)]/10 shadow-[0_0_15px_rgba(147,197,253,0.15)]' : 'border-white/10 bg-black/40 hover:border-white/30'
+                                }`}
+                              >
+                                <div className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center overflow-hidden border transition-colors ${isSelected ? 'bg-[var(--accent)]/20 border-[var(--accent)]/50 text-[var(--accent)]' : 'bg-white/5 border-white/10 text-[var(--meta)]'}`}>
+                                   <User className="w-5 h-5" />
+                                </div>
+                                <span className="text-[11px] font-semibold text-center leading-tight text-white tracking-wide">
+                                  {info.first}<br/>
+                                  <span className={`text-[9px] ${isSelected ? 'text-[var(--accent)]/80' : 'text-[var(--meta)]'}`}>{info.second}</span>
+                                </span>
+                              </motion.div>
+                            )
+                          })}
+                          {/* New Profile Button */}
+                          <motion.div 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              setIsAddingProfile(true);
+                              setActiveTab('Profiles');
+                            }}
+                            className="flex-shrink-0 w-24 h-28 rounded-2xl border border-dashed border-white/20 bg-transparent flex flex-col items-center justify-center p-2 cursor-pointer hover:border-[var(--accent)] hover:bg-[var(--accent)]/5 transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-[var(--accent)]/10 mb-3 flex items-center justify-center transition-colors">
+                              <Plus className="w-5 h-5 text-[var(--meta)] group-hover:text-[var(--accent)] transition-colors" />
+                            </div>
+                            <span className="text-[10px] font-medium text-[var(--meta)] group-hover:text-[var(--accent)] transition-colors tracking-wide">New Profile</span>
+                          </motion.div>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={handleBookAppointment}
+                        className="w-full py-4 bg-white text-black hover:bg-gray-200 font-bold text-sm rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all disabled:opacity-50 disabled:shadow-none mb-4 tracking-wide"
+                        disabled={!selectedProfileId}
+                      >
+                        <ScanLine className="w-4 h-4 mr-2" />
+                        Generate Cryptographic Pass
+                      </button>
+                      <p className="text-center text-[10px] text-[var(--meta)] uppercase tracking-widest font-medium">Position locked for 15:00 minutes</p>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ---------------- PROFILES VIEW ---------------- */}
+        {activeTab === 'Profiles' && (
+          <motion.div 
+            key="profiles"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-[#030507] flex flex-col z-10 overflow-y-auto pb-32"
+          >
+            {renderTopNav('Identity Management')}
+            
+            <div className="flex-1 p-6 max-w-md mx-auto w-full pt-8">
+              <h2 className="text-2xl font-bold text-white mb-8 tracking-tight">Family Profiles</h2>
+              
+              <div className="space-y-4 mb-8">
+                {Array.isArray(profiles) && profiles.map((p: Profile, idx: number) => {
+                  if (!p) return null;
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      key={p._id} 
+                      className="glass-panel p-5 flex justify-between items-center cursor-pointer hover:border-white/30 hover:bg-white/5 transition-all group" 
+                      onClick={() => { setSelectedProfileId(p._id); setActiveTab('Map'); }}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center border border-white/10 group-hover:border-white/30 transition-colors">
+                          <User className="w-5 h-5 text-[var(--meta)] group-hover:text-white transition-colors" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-white tracking-wide">{p.name || 'Unknown'}</h3>
+                          <p className="text-xs text-[var(--meta)] mt-0.5">{p.profileType || 'Patient'} Identity</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-[var(--meta)] group-hover:text-white transition-colors" />
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {isAddingProfile ? (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="glass-panel p-6 border-white/20 shadow-2xl"
+                >
+                  <h3 className="text-lg font-bold text-white mb-6 tracking-tight">Register New Profile</h3>
+                  <form onSubmit={handleAddProfile} className="space-y-5">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-2">Profile Type</label>
+                      <select value={newProfileType} onChange={(e) => setNewProfileType(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:border-[var(--accent)] outline-none transition-colors appearance-none shadow-inner">
+                        <option value="Human">Human Care</option>
+                        <option value="Pet">Veterinary Care</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-2">{newProfileType === 'Human' ? 'Full Name' : 'Pet Name'}</label>
+                      <input required type="text" value={newProfileName} onChange={(e) => setNewProfileName(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:border-[var(--accent)] outline-none transition-colors shadow-inner" />
+                    </div>
+                    {newProfileType === 'Human' ? (
+                      <>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-2">Age / DOB</label>
+                          <input required type="text" value={newProfileDob} onChange={(e) => setNewProfileDob(e.target.value)} placeholder="e.g. 1990-01-01" className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:border-[var(--accent)] outline-none transition-colors shadow-inner" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-2">Blood Group</label>
+                          <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} placeholder="e.g. O+" className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:border-[var(--accent)] outline-none transition-colors shadow-inner" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-2">Species</label>
+                          <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} placeholder="e.g. Dog, Cat" className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:border-[var(--accent)] outline-none transition-colors shadow-inner" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-2">Breed</label>
+                          <input required type="text" value={newProfileBreed} onChange={(e) => setNewProfileBreed(e.target.value)} placeholder="e.g. Golden Retriever" className="w-full bg-black/50 border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:border-[var(--accent)] outline-none transition-colors shadow-inner" />
+                        </div>
+                      </>
+                    )}
+                    <div className="pt-4 flex space-x-4">
+                      <button type="button" onClick={() => setIsAddingProfile(false)} className="flex-1 py-3.5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-white hover:bg-white/5 transition-colors">Cancel</button>
+                      <button type="submit" disabled={!isFormValid} className={`flex-[2] py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${isFormValid ? 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-white/5 text-white/30 cursor-not-allowed'}`}>Save Profile</button>
+                    </div>
+                  </form>
+                </motion.div>
+              ) : (
+                <button onClick={() => setIsAddingProfile(true)} className="w-full py-5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center text-sm font-semibold text-[var(--meta)] hover:text-white hover:border-white/50 hover:bg-white/5 transition-all">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Register New Profile
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ---------------- TICKETS VIEW ---------------- */}
+        {activeTab === 'Tickets' && (
+          <motion.div 
+            key="tickets"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-[#030507] flex flex-col z-10 overflow-y-auto pb-32"
+          >
+            {renderTopNav('Active Tokens')}
+            
+            {activeTicket ? (
+              <div className="flex-1 flex flex-col items-center p-6 max-w-sm mx-auto w-full pt-8">
+                <div className="inline-flex items-center space-x-2 bg-green-500/10 border border-green-500/20 px-4 py-1.5 rounded-full mb-8 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Live Check-in</span>
+                </div>
+
+                {/* QR Card */}
+                <div className="glass-panel w-full p-8 mb-6 border-white/20 shadow-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+                  
+                  <div className="bg-white rounded-2xl aspect-square w-full mb-8 flex flex-col items-center justify-center p-6 shadow-inner relative z-10">
+                     <QRCodeSVG value={String(activeTicket._id)} size={240} className="w-full h-full" bgColor="transparent" fgColor="#030507" />
+                  </div>
+                  
+                  <div className="text-center text-[9px] text-[var(--meta)] uppercase tracking-widest mb-8 font-mono">
+                    [ HASH: {activeTicket._id} | AES-256 ]
+                  </div>
+
+                  <div className="flex justify-between items-start mb-6 border-b border-white/10 pb-6 relative z-10">
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-1.5">Patient Identity</div>
+                      <div className="text-base font-bold text-white tracking-wide">
+                        {Array.isArray(profiles) ? profiles.find(p=>p && p._id === activeTicket.patientId)?.name || 'Unknown' : 'Unknown'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-1.5">Validity</div>
+                      <div className="text-base font-bold text-white">15:00</div>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-1.5">Target Node</div>
+                    <div className="text-sm font-semibold text-white flex items-center bg-black/40 px-3 py-2 rounded-xl border border-white/5">
+                      <MapIcon className="w-4 h-4 mr-2 text-[var(--accent)]" />
+                      {activeTicket.facility?.name || 'Assigned Node'}
                     </div>
                   </div>
                 </div>
 
-                <button 
-                  onClick={handleBookAppointment}
-                  className="w-full py-3.5 bg-[var(--accent)] text-[#1E1E1E] font-bold text-sm rounded-xl flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity mb-3 disabled:opacity-50"
-                  disabled={!selectedProfileId}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                  Scan QR / Book Token
+                {/* Queue Position */}
+                <div className="glass-panel w-full p-6 text-center mb-8 border-white/10">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--meta)] mb-3">Estimated Wait: {activeTicket.facility?.estWait || '12 min'}</div>
+                  <div className="text-[10px] font-bold text-[var(--accent)] uppercase tracking-widest mb-2">Queue Position</div>
+                  <div className="text-6xl font-bold text-white mb-5 font-mono tracking-tighter">#3</div>
+                  <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: '66%' }}
+                      transition={{ duration: 1, delay: 0.5 }}
+                      className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" 
+                    />
+                  </div>
+                </div>
+
+                <button className="w-full py-4 bg-transparent border border-red-500/30 text-red-400 font-bold text-xs uppercase tracking-widest rounded-xl flex items-center justify-center hover:bg-red-500/10 transition-colors">
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Revoke Appointment
                 </button>
-                <p className="text-center text-[10px] text-[var(--meta)]">Your position in queue will be locked for 15:00 minutes</p>
-              </div>
-            </div>
-          )}
-          </div>
-        </div>
-      )}
-
-      {/* ---------------- PROFILES VIEW ---------------- */}
-      {activeTab === 'Profiles' && (
-        <div className="absolute inset-0 bg-[#05070B] flex flex-col z-10 overflow-y-auto pb-24">
-          {renderTopNav('Profile Management')}
-          
-          <div className="flex-1 p-6 max-w-md mx-auto w-full">
-            <h2 className="text-xl font-bold text-white mb-6">Family Profiles</h2>
-            
-            <div className="space-y-4 mb-8">
-              {Array.isArray(profiles) && profiles.map((p: Profile) => {
-                if (!p) return null;
-                return (
-                  <div key={p._id} className="glass-panel p-4 flex justify-between items-center cursor-pointer hover:border-white/50" onClick={() => { setSelectedProfileId(p._id); setActiveTab('Map'); }}>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 rounded-full bg-[#0D1117] flex items-center justify-center border border-[var(--border)]">
-                        <svg className="w-5 h-5 text-[var(--meta)]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-white">{p.name || 'Unknown'}</h3>
-                        <p className="text-xs text-[var(--meta)]">{p.profileType || 'Patient'} Profile</p>
-                      </div>
-                    </div>
-                    <svg className="w-5 h-5 text-[var(--meta)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                  </div>
-                );
-              })}
-            </div>
-
-            {isAddingProfile ? (
-              <div className="glass-panel p-6">
-                <h3 className="text-sm font-bold text-white mb-4">Add New Profile</h3>
-                <form onSubmit={handleAddProfile} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Profile Type</label>
-                    <select value={newProfileType} onChange={(e) => setNewProfileType(e.target.value)} className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none">
-                      <option value="Human">Human Care</option>
-                      <option value="Pet">Veterinary Care</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">{newProfileType === 'Human' ? 'Full Name' : 'Pet Name'}</label>
-                    <input required type="text" value={newProfileName} onChange={(e) => setNewProfileName(e.target.value)} className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                  </div>
-                  {newProfileType === 'Human' ? (
-                    <>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Age / DOB</label>
-                        <input required type="text" value={newProfileDob} onChange={(e) => setNewProfileDob(e.target.value)} placeholder="e.g. 1990-01-01" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Blood Group</label>
-                        <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} placeholder="e.g. O+" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Species</label>
-                        <input required type="text" value={newProfileExtra} onChange={(e) => setNewProfileExtra(e.target.value)} placeholder="e.g. Dog, Cat" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-[var(--meta)] mb-1.5">Breed</label>
-                        <input required type="text" value={newProfileBreed} onChange={(e) => setNewProfileBreed(e.target.value)} placeholder="e.g. Golden Retriever" className="w-full bg-[#0D1117] border border-[var(--border)] rounded-lg py-2.5 px-3 text-xs text-white focus:border-[var(--accent)] outline-none" />
-                      </div>
-                    </>
-                  )}
-                  <div className="pt-2 flex space-x-3">
-                    <button type="button" onClick={() => setIsAddingProfile(false)} className="flex-1 py-2.5 border border-[var(--border)] rounded-lg text-xs font-bold text-white hover:bg-[var(--panel)]">Cancel</button>
-                    <button type="submit" disabled={!isFormValid} className={`flex-[2] py-2.5 rounded-lg text-xs font-bold transition-all border ${isFormValid ? 'bg-[var(--accent)] text-[#1E1E1E] hover:border-white/80 active:bg-white/10 hover:text-white cursor-pointer border-[#30363D]' : 'bg-[var(--border)] text-[var(--meta)] cursor-not-allowed border-transparent opacity-50'}`}>Save Profile</button>
-                  </div>
-                </form>
               </div>
             ) : (
-              <button onClick={() => setIsAddingProfile(true)} className="w-full py-4 border border-dashed border-[var(--border)] rounded-xl flex items-center justify-center text-sm font-medium text-[var(--meta)] hover:text-white hover:border-[var(--meta)] transition-colors">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                Create New Profile
-              </button>
+              <div className="flex-1 flex flex-col items-center justify-center text-[var(--meta)] p-6 text-center">
+                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                  <TicketIcon className="w-8 h-8 opacity-50" />
+                </div>
+                <p className="text-sm tracking-wide leading-relaxed">No active cryptographic tokens detected.<br/>Return to the Heatmap to request a pass.</p>
+                <button onClick={() => setActiveTab('Map')} className="mt-8 px-8 py-3.5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-white hover:bg-white/10 transition-colors shadow-lg">View Heatmap</button>
+              </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* ---------------- TICKETS VIEW ---------------- */}
-      {activeTab === 'Tickets' && (
-        <div className="absolute inset-0 bg-[#05070B] flex flex-col z-10 overflow-y-auto pb-24">
-          {renderTopNav('Active Scanning Pass')}
-          
-          {activeTicket ? (
-            <div className="flex-1 flex flex-col items-center p-6 max-w-sm mx-auto w-full">
-              <div className="inline-flex items-center space-x-1.5 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Active Check-in</span>
-              </div>
-
-              {/* QR Card */}
-              <div className="glass-panel w-full p-6 mb-6">
-                <div className="bg-[#0D1117] rounded-xl aspect-square w-full mb-6 flex flex-col items-center justify-center border border-[var(--border)] relative p-4">
-                   <QRCodeSVG value={activeTicket._id} size={200} className="w-full h-full max-w-[200px]" bgColor="transparent" fgColor="#F0F6FC" />
-                </div>
-                
-                <div className="text-center text-[8px] text-[var(--meta)] uppercase tracking-widest mb-6">
-                  [ HASH: {activeTicket._id} | ENCRYPTED AES-256 ]
-                </div>
-
-                <div className="flex justify-between items-start mb-6 border-b border-[var(--border)] pb-4">
-                  <div>
-                    <div className="text-[10px] text-[var(--meta)] mb-1">Patient Identity</div>
-                    <div className="text-sm font-bold text-white">
-                      {Array.isArray(profiles) ? profiles.find(p=>p && p._id === activeTicket.patientId)?.name || 'Unknown' : 'Unknown'}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[10px] text-[var(--meta)] mb-1">Check-In Rules</div>
-                    <div className="text-sm font-bold text-white">Valid 15 Mins</div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-[10px] text-[var(--meta)] mb-1">Target Facility</div>
-                  <div className="text-sm font-medium text-white flex items-center">
-                    <svg className="w-4 h-4 mr-1.5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                    {activeTicket.facility?.name || 'Assigned Node'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Queue Position */}
-              <div className="glass-panel w-full p-6 text-center mb-6">
-                <div className="text-[10px] text-[var(--meta)] mb-2 font-medium">Estimated Wait: {activeTicket.facility?.estWait || '12 min'}</div>
-                <div className="text-[10px] font-bold text-[var(--accent)] uppercase tracking-widest mb-1">Your Position</div>
-                <div className="text-5xl font-bold text-white mb-4 mono">#3</div>
-                <div className="w-full h-1.5 bg-[#0D1117] rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full w-2/3"></div>
-                </div>
-              </div>
-
-              <button className="w-full py-3.5 bg-transparent border border-red-500/30 text-red-400 font-medium text-xs rounded-xl flex items-center justify-center hover:bg-red-500/10 transition-colors">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Cancel Appointment
-              </button>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-[var(--meta)] p-6 text-center">
-              <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
-              <p>No active reservations detected.<br/>Return to the Map to request a token.</p>
-              <button onClick={() => setActiveTab('Map')} className="mt-6 px-6 py-2.5 border border-[var(--border)] rounded-full text-xs font-bold text-white hover:bg-[var(--panel)]">View Map Map</button>
-            </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {renderBottomNav()}
     </div>
