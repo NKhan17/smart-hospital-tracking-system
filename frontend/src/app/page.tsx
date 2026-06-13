@@ -4,10 +4,10 @@ import { io } from 'socket.io-client';
 import { QRCodeSVG } from 'qrcode.react';
 
 const mockFacilitiesData = [
-  { _id: '60e5a60b9432f700150b6a3b', name: 'Hebbal Veterinary Hospital', type: 'Pet', load: 20, estWait: '5 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '35%', left: '30%' } },
-  { _id: '60e5a60b9432f700150b6a3c', name: 'KC General Hospital', type: 'Human', load: 100, estWait: '45 Mins', status: 'Full', color: 'bg-red-400', pos: { top: '25%', left: '55%' } },
-  { _id: '60e5a60b9432f700150b6a3d', name: 'Central Med', type: 'Human', load: 60, estWait: '20 Mins', status: 'Moderate', color: 'bg-yellow-500', pos: { top: '60%', left: '65%' } },
-  { _id: '60e5a60b9432f700150b6a3e', name: 'Paws & Care', type: 'Pet', load: 15, estWait: '2 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '75%', left: '25%' } },
+  { _id: '60e5a60b9432f700150b6a3b', name: 'Hebbal Veterinary Hospital', type: 'Ward', currentQueueCount: 20, estWait: '5 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '35%', left: '30%' } },
+  { _id: '60e5a60b9432f700150b6a3c', name: 'KC General Hospital', type: 'OPD', currentQueueCount: 100, estWait: '45 Mins', status: 'Full', color: 'bg-red-400', pos: { top: '25%', left: '55%' } },
+  { _id: '60e5a60b9432f700150b6a3d', name: 'Central Med', type: 'Emergency', currentQueueCount: 60, estWait: '20 Mins', status: 'Moderate', color: 'bg-yellow-500', pos: { top: '60%', left: '65%' } },
+  { _id: '60e5a60b9432f700150b6a3e', name: 'Paws & Care', type: 'Lab', currentQueueCount: 15, estWait: '2 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '75%', left: '25%' } },
 ];
 
 interface Facility {
@@ -15,6 +15,7 @@ interface Facility {
   name?: string;
   type?: string;
   load?: number;
+  currentQueueCount?: number;
   estWait?: string;
   status?: string;
   color?: string;
@@ -41,7 +42,7 @@ interface Ticket {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'Map' | 'Profiles' | 'Tickets'>('Map');
-  const [mapCategory, setMapCategory] = useState<'Human Hospitals' | 'Veterinary Clinics'>('Human Hospitals');
+  const [mapCategory, setMapCategory] = useState<'General Care' | 'Specialized & Emergency'>('General Care');
   
   // Data State
   const [facilities, setFacilities] = useState<Facility[]>(mockFacilitiesData as Facility[]);
@@ -87,7 +88,7 @@ export default function Home() {
     const socket = io(backendUrl, { withCredentials: true });
     socket.on('load-updated', (data) => {
        if (data && data.facilityId) {
-         setFacilities(prev => prev.map(f => f._id === data.facilityId ? { ...f, load: data.newLoad } : f));
+         setFacilities(prev => prev.map(f => f._id === data.facilityId ? { ...f, currentQueueCount: data.newLoad } : f));
        }
     });
     return () => { socket.disconnect(); };
@@ -125,6 +126,9 @@ export default function Home() {
         setNewProfileExtra('');
         setNewProfileBreed('');
         setSelectedProfileId(newProf._id);
+        if (selectedFacility) {
+          setActiveTab('Map');
+        }
       }
     } catch (err) {
       console.error('Failed to create profile', err);
@@ -212,16 +216,16 @@ export default function Home() {
             {/* Center Pill Switcher */}
           <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex bg-[var(--panel)] border border-[var(--border)] rounded-full p-1 z-20 shadow-lg">
             <button 
-              onClick={() => setMapCategory('Human Hospitals')}
-              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'Human Hospitals' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
+              onClick={() => setMapCategory('General Care')}
+              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'General Care' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
             >
-              Human Hospitals
+              General Care
             </button>
             <button 
-              onClick={() => setMapCategory('Veterinary Clinics')}
-              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'Veterinary Clinics' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
+              onClick={() => setMapCategory('Specialized & Emergency')}
+              className={`px-6 py-2 text-xs font-semibold rounded-full transition-colors ${mapCategory === 'Specialized & Emergency' ? 'bg-[var(--accent)] text-[#1E1E1E]' : 'text-[var(--meta)] hover:text-white'}`}
             >
-              Veterinary Clinics
+              Specialized & Emergency
             </button>
           </div>
 
@@ -252,11 +256,15 @@ export default function Home() {
           </div>
 
           {/* Map Nodes */}
-          {Array.isArray(facilities) && facilities.filter(f => f?.type && mapCategory.includes(f.type)).map(f => (
+          {Array.isArray(facilities) && facilities.filter(f => {
+            if (!f?.type) return false;
+            if (mapCategory === 'General Care') return ['OPD', 'Ward', 'Human', 'Pet'].includes(f.type);
+            return ['Lab', 'Pharmacy', 'Emergency'].includes(f.type);
+          }).map(f => (
             <div key={f._id} className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style={{ top: f.pos?.top || '50%', left: f.pos?.left || '50%' }} onClick={() => setSelectedFacility(f)}>
               <div className="flex items-center space-x-2 bg-[var(--panel)] border border-[var(--border)] rounded-full px-3 py-1.5 shadow-lg group-hover:border-[var(--accent)] transition-colors">
                 <div className={`w-2.5 h-2.5 rounded-full ${f.color || 'bg-blue-500'}`}></div>
-                <span className="text-[10px] font-medium text-white">{f.name || 'Unknown'}: {f.status || 'Active'}</span>
+                <span className="text-[10px] font-medium text-white">{f.name || 'Unknown'}: Queue {f.currentQueueCount || f.load || 0}</span>
               </div>
               <div className="absolute left-1/2 bottom-[-8px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[var(--panel)] transform -translate-x-1/2 group-hover:border-t-[var(--accent)] transition-colors"></div>
             </div>
@@ -313,7 +321,7 @@ export default function Home() {
                       onClick={() => {
                         setIsAddingProfile(true);
                         setActiveTab('Profiles');
-                        setSelectedFacility(null);
+                        // DO NOT nullify selectedFacility, so they return right back here
                       }}
                       className="flex-shrink-0 w-24 h-28 rounded-xl border border-dashed border-[var(--border)] bg-transparent flex flex-col items-center justify-center p-2 cursor-pointer hover:border-[var(--meta)]"
                     >
