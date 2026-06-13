@@ -10,17 +10,46 @@ const mockFacilitiesData = [
   { _id: '60e5a60b9432f700150b6a3e', name: 'Paws & Care', type: 'Pet', load: 15, estWait: '2 Mins', status: 'Low', color: 'bg-green-500', pos: { top: '75%', left: '25%' } },
 ];
 
+interface Facility {
+  _id: string;
+  name?: string;
+  type?: string;
+  load?: number;
+  estWait?: string;
+  status?: string;
+  color?: string;
+  pos?: { top: string; left: string };
+}
+
+interface Profile {
+  _id: string;
+  profileType?: string;
+  name?: string;
+  dob?: string;
+  bloodGroup?: string;
+  species?: string;
+  breed?: string;
+  vaccinations?: string;
+}
+
+interface Ticket {
+  _id: string;
+  patientId?: string;
+  facility?: Facility;
+  [key: string]: unknown;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'Map' | 'Profiles' | 'Tickets'>('Map');
   const [mapCategory, setMapCategory] = useState<'Human Hospitals' | 'Veterinary Clinics'>('Human Hospitals');
   
   // Data State
-  const [facilities, setFacilities] = useState(mockFacilitiesData);
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [activeTicket, setActiveTicket] = useState<any>(null);
+  const [facilities, setFacilities] = useState<Facility[]>(mockFacilitiesData as Facility[]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
   
   // Modal & Selection State
-  const [selectedFacility, setSelectedFacility] = useState<any>(null);
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [isAddingProfile, setIsAddingProfile] = useState(false);
 
@@ -48,8 +77,8 @@ export default function Home() {
       .then(data => {
         if (data && Array.isArray(data)) {
           setProfiles(data);
-          if (data.length > 0 && !selectedProfileId) {
-            setSelectedProfileId(data[0]._id);
+          if (data.length > 0) {
+            setSelectedProfileId(prev => prev || data[0]._id);
           }
         }
       })
@@ -67,7 +96,7 @@ export default function Home() {
   const handleAddProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
-    const payload: any = { profileType: newProfileType, name: newProfileName, dob: newProfileDob || new Date().toISOString() };
+    const payload: Record<string, string> = { profileType: newProfileType, name: newProfileName, dob: newProfileDob || new Date().toISOString() };
     if (newProfileType === 'Human') {
       payload.bloodGroup = newProfileExtra || 'O+';
     } else {
@@ -131,9 +160,9 @@ export default function Home() {
     }
   };
 
-  const getProfileDisplayInfo = (p: any) => {
+  const getProfileDisplayInfo = (p: Profile) => {
     return {
-      first: p.name.split(' ')[0],
+      first: p.name ? p.name.split(' ')[0] : 'Unknown',
       second: p.profileType === 'Human' ? '(Human)' : '(Pet)'
     };
   };
@@ -321,7 +350,7 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-6">Family Profiles</h2>
             
             <div className="space-y-4 mb-8">
-              {Array.isArray(profiles) && profiles.map((p: any) => {
+              {Array.isArray(profiles) && profiles.map((p: Profile) => {
                 if (!p) return null;
                 return (
                   <div key={p._id} className="glass-panel p-4 flex justify-between items-center cursor-pointer hover:border-white/50" onClick={() => { setSelectedProfileId(p._id); setActiveTab('Map'); }}>

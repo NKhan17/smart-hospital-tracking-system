@@ -39,7 +39,7 @@ export default function StaffPortal() {
         setQrToken(`mock-token-${bookingId}-${Date.now()}`);
       }
       setStatus('ready');
-    } catch (err) {
+    } catch {
       setQrToken(`mock-token-${bookingId}-${Date.now()}`);
       setStatus('ready');
     }
